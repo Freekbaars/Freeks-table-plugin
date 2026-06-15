@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <TargetExt>.rhp</TargetExt>
+    <NoWarn>NU1701</NoWarn>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Title>RhinoTable</Title>
+    <Authors>Freek Baars</Authors>
+    <Company>Freek Baars</Company>
+    <Description>Professional table creator for Rhino 8. Create and edit Excel-like annotation tables directly in the Rhino viewport.</Description>
+    <PackageProjectUrl>https://github.com</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RhinoTable.Core\RhinoTable.Core.csproj" />
+    <ProjectReference Include="..\RhinoTable.UI\RhinoTable.UI.csproj" />
+  </ItemGroup>
+
+</Project>

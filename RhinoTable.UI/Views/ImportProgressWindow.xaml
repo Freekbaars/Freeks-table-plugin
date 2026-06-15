@@ -1,0 +1,32 @@
+<Window x:Class="RhinoTable.UI.Views.ImportProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Importeren…"
+        Width="340" Height="130"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="#F2F5F8">
+
+    <StackPanel Margin="24,20" VerticalAlignment="Center">
+
+        <TextBlock x:Name="StatusText"
+                   Text="Bestand inlezen…"
+                   FontSize="13"
+                   Foreground="#2C3E50"
+                   Margin="0,0,0,12"/>
+
+        <ProgressBar x:Name="ProgressBar"
+                     IsIndeterminate="True"
+                     Height="8"
+                     Foreground="#2980B9"
+                     Background="#D0DCE8" ValueChanged="ProgressBar_ValueChanged"/>
+
+        <TextBlock x:Name="RowText"
+                   Text=""
+                   FontSize="10"
+                   Foreground="#7F8C8D"
+                   Margin="0,8,0,0"/>
+    </StackPanel>
+</Window>

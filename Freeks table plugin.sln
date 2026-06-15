@@ -1,0 +1,37 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37328.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Freeks table plugin", "Freeks table plugin\Freeks table plugin.csproj", "{7D3E2462-7428-4B5F-A4CA-9FBE41D50CD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RhinoTable.Core", "RhinoTable.Core\RhinoTable.Core.csproj", "{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F6A7B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RhinoTable.UI", "RhinoTable.UI\RhinoTable.UI.csproj", "{B2C3D4E5-F6A7-8901-B2C3-D4E5F6A7B8C9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D3E2462-7428-4B5F-A4CA-9FBE41D50CD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D3E2462-7428-4B5F-A4CA-9FBE41D50CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D3E2462-7428-4B5F-A4CA-9FBE41D50CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D3E2462-7428-4B5F-A4CA-9FBE41D50CD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F6A7B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F6A7B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F6A7B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-A1B2-C3D4E5F6A7B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C3D4E5-F6A7-8901-B2C3-D4E5F6A7B8C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C3D4E5-F6A7-8901-B2C3-D4E5F6A7B8C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C3D4E5-F6A7-8901-B2C3-D4E5F6A7B8C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C3D4E5-F6A7-8901-B2C3-D4E5F6A7B8C9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A17BDDB8-2AE5-47BC-AB08-069FE8249B2D}
+	EndGlobalSection
+EndGlobal

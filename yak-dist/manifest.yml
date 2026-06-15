@@ -1,0 +1,12 @@
+---
+name: rhinotable
+version: 1.0.1
+authors:
+- Freek Baars
+description: Create and edit Excel-like annotation tables directly in the Rhino 8 viewport. Supports text formatting, hatch fills, borders, cell merging, and CSV/Excel import.
+url: https://github.com
+keywords:
+- table
+- annotation
+- excel
+- drawing

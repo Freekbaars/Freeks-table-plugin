@@ -1,0 +1,836 @@
+<Window x:Class="RhinoTable.UI.Views.TableEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:RhinoTable.UI.Converters"
+        x:Name="EditorWindow"
+        Title="RhinoTable — Table Editor"
+        Width="1338" Height="690"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize"
+        Background="#F2F5F8">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/TableEditorTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <conv:HatchNameToBrushConverter x:Key="HatchNameToBrush"/>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="Return" Modifiers="Ctrl" Command="{Binding PlaceTableCommand}"/>
+        <KeyBinding Key="B"      Modifiers="Ctrl" Command="{Binding BoldCommand}"/>
+        <KeyBinding Key="I"      Modifiers="Ctrl" Command="{Binding ItalicCommand}"/>
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Ribbon toolbar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Eigenschappen-strip -->
+            <RowDefinition Height="*"/>
+            <!-- DataGrid -->
+            <RowDefinition Height="26"/>
+            <!-- Statusbalk -->
+        </Grid.RowDefinitions>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             RIBBON TOOLBAR
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="#1B4F7A" Padding="6,6,6,4">
+            <StackPanel Orientation="Horizontal">
+
+                <!-- ── PLAATSEN ──────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="8,4">
+                    <Button Command="{Binding PlaceTableCommand}"
+                            ToolTip="Place or update table in Rhino (Ctrl+Enter)"
+                            Style="{StaticResource PrimaryButton}"
+                            MinWidth="90" Height="52">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock FontSize="18" FontWeight="Bold" HorizontalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="✓"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEditingExisting}" Value="True">
+                                                <Setter Property="Text" Value="↻"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Text="{Binding PlaceButtonLabel}"
+                                       FontSize="10" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── STRUCTUUR: rijen + kolommen in 2×4 grid ───────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="STRUCTURE" Style="{StaticResource GroupLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="26"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="26"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Rij-operaties -->
+                            <Button Grid.Row="0" Grid.Column="0"
+                                    Content="↑" Command="{Binding InsertRowAboveCommand}"
+                                    ToolTip="Insert row above"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    Content="↓" Command="{Binding InsertRowBelowCommand}"
+                                    ToolTip="Insert row below"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="0" Grid.Column="2"
+                                    Content="＋" Command="{Binding AddRowCommand}"
+                                    ToolTip="Add row at end"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="0" Grid.Column="3"
+                                    Content="✕" Command="{Binding RemoveRowCommand}"
+                                    ToolTip="Delete selected row"
+                                    Style="{StaticResource DangerButton}" Padding="2,3"/>
+
+                            <!-- Kolom-operaties -->
+                            <Button Grid.Row="1" Grid.Column="0"
+                                    Content="←" Command="{Binding InsertColumnLeftCommand}"
+                                    ToolTip="Insert column left"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    Content="→" Command="{Binding InsertColumnRightCommand}"
+                                    ToolTip="Insert column right"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="1" Grid.Column="2"
+                                    Content="＋" Command="{Binding AddColumnCommand}"
+                                    ToolTip="Add column at end"
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                            <Button Grid.Row="1" Grid.Column="3"
+                                    Content="✕" Command="{Binding RemoveColumnCommand}"
+                                    ToolTip="Delete selected column"
+                                    Style="{StaticResource DangerButton}" Padding="2,3"/>
+                        </Grid>
+
+                        <!-- Sublabels -->
+                        <Grid Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Rows"    Foreground="#A8C8E8" FontSize="8" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Columns" Foreground="#A8C8E8" FontSize="8" HorizontalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Header-rij toggle -->
+                        <ToggleButton Margin="0,4,0,0" Height="22" Padding="6,2"
+                                      IsChecked="{Binding IsCurrentRowHeader, Mode=OneWay}"
+                                      Command="{Binding ToggleHeaderRowCommand}"
+                                      Style="{StaticResource DropdownToggleButton}"
+                                      ToolTip="Toggle selected row as header (excluded from row numbering)">
+                            <TextBlock Text="H  Header row" FontSize="10"/>
+                        </ToggleButton>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── TEKST ──────────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="TEXT" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Vertical">
+
+                            <!-- Rij 1: B I sub sup | Tekstkleur -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Command="{Binding BoldCommand}"
+                                        ToolTip="Bold (Ctrl+B)"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <TextBlock Text="B" FontWeight="Bold" FontSize="13"/>
+                                </Button>
+                                <Button Command="{Binding ItalicCommand}"
+                                        ToolTip="Italic (Ctrl+I)"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <TextBlock Text="I" FontStyle="Italic" FontSize="13"/>
+                                </Button>
+                                <Button Command="{Binding InsertSubCommand}"
+                                        ToolTip="Insert subscript: _{text}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <TextBlock>X<Run BaselineAlignment="Subscript" FontSize="8">2</Run></TextBlock>
+                                </Button>
+                                <Button Command="{Binding InsertSupCommand}"
+                                        ToolTip="Insert superscript: ^{text}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <TextBlock>X<Run BaselineAlignment="Superscript" FontSize="8">2</Run></TextBlock>
+                                </Button>
+                                <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
+                                <!-- Tekstkleur toggle -->
+                                <ToggleButton x:Name="TextColorToggle"
+                                              Style="{StaticResource DropdownToggleButton}"
+                                              ToolTip="Choose text color"
+                                              Height="26" MinWidth="46">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="T" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text="▼" FontSize="8" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <Popup PlacementTarget="{Binding ElementName=TextColorToggle}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsChecked, ElementName=TextColorToggle, Mode=TwoWay}"
+                                       StaysOpen="False"
+                                       DataContext="{Binding DataContext, ElementName=EditorWindow}">
+                                    <Border Background="#163F60" Padding="7" CornerRadius="4"
+                                            BorderBrush="#3A7AB0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Text color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <WrapPanel Width="164">
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter=""
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22"
+                                                        ToolTip="Remove text color (black)">
+                                                    <TextBlock Text="✕" FontSize="9" Foreground="#CCC"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#000000"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Black">
+                                                    <Border Background="#000000" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#555555"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Dark grey">
+                                                    <Border Background="#555555" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#C0392B"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Red">
+                                                    <Border Background="#C0392B" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#E67E22"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Orange">
+                                                    <Border Background="#E67E22" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#D4AC0D"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Yellow">
+                                                    <Border Background="#D4AC0D" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#1E8449"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Green">
+                                                    <Border Background="#1E8449" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#2980B9"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Blue">
+                                                    <Border Background="#2980B9" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetTextColorCommand}" CommandParameter="#8E44AD"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Purple">
+                                                    <Border Background="#8E44AD" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                            </WrapPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBox Width="82" Text="#" FontFamily="Consolas" FontSize="11"
+                                                         Padding="4,2" MaxLength="7"
+                                                         Background="#0D3050" Foreground="#CCDDEE" CaretBrush="White"
+                                                         BorderBrush="#3A7AB0" BorderThickness="1"
+                                                         VerticalContentAlignment="Center"
+                                                         ToolTip="Enter a hex color code, e.g. #FF4444"/>
+                                                <Button Content="✓" Margin="4,0,0,0" Width="22" Height="22"
+                                                        Click="ApplyHexTextColor_Click"
+                                                        Style="{StaticResource SwatchButton}"
+                                                        ToolTip="Apply color"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </StackPanel>
+
+                            <!-- Rij 2: Lettertype dropdown | Grootte -->
+                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                <ComboBox Width="120"
+                                          Style="{StaticResource PropComboBox}"
+                                          Text="{Binding SelectedCellFont, UpdateSourceTrigger=LostFocus}"
+                                          ItemsSource="{Binding AvailableFonts}"
+                                          ToolTip="Choose font">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}"
+                                                       FontFamily="{Binding}"
+                                                       FontSize="12"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBox Width="44"
+                                         Text="{Binding SelectedCellFontSize, UpdateSourceTrigger=LostFocus}"
+                                         Style="{StaticResource PropBox}" Margin="3,0,0,0"
+                                         ToolTip="Font size in points"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── UITLIJNING ──────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="ALIGNMENT" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Vertical">
+
+                            <!-- Rij 1: H-uitlijning | V-uitlijning | terugloop -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="≡L" Command="{Binding AlignLeftCommand}"
+                                        ToolTip="Align left"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="≡C" Command="{Binding AlignCenterCommand}"
+                                        ToolTip="Center"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="≡R" Command="{Binding AlignRightCommand}"
+                                        ToolTip="Align right"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
+                                <Button Content="⊤" Command="{Binding AlignTopCommand}"
+                                        ToolTip="Align text to top of cell"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="⊢" Command="{Binding AlignMiddleCommand}"
+                                        ToolTip="Center text vertically"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="⊥" Command="{Binding AlignBottomCommand}"
+                                        ToolTip="Align text to bottom of cell"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
+                                <Button Content="↵" Command="{Binding ToggleWordWrapCommand}"
+                                        ToolTip="Toggle word wrap"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                            </StackPanel>
+
+                            <!-- Rij 2: samenvoegen -->
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                <Button Content="⊞ Merge"
+                                        Command="{Binding MergeCellsCommand}"
+                                        ToolTip="Merge cell with adjacent right cell"
+                                        Style="{StaticResource ToolbarButton}" Padding="5,3"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── ACHTERGROND ────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="BACKGROUND" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Horizontal">
+
+                            <!-- V▼ / H▼ kleur dropdowns (gestapeld) -->
+                            <StackPanel Orientation="Vertical" Margin="0,0,6,0">
+
+                                <!-- Vulkleur toggle -->
+                                <ToggleButton x:Name="FillColorToggle"
+                                              Style="{StaticResource DropdownToggleButton}"
+                                              ToolTip="Choose fill color"
+                                              Height="26" MinWidth="46">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="V" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text=" ▼" FontSize="8" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+
+                                <!-- Popup voor vulkleur -->
+                                <Popup PlacementTarget="{Binding ElementName=FillColorToggle}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsChecked, ElementName=FillColorToggle, Mode=TwoWay}"
+                                       StaysOpen="False"
+                                       DataContext="{Binding DataContext, ElementName=EditorWindow}">
+                                    <Border Background="#163F60" Padding="7" CornerRadius="4"
+                                            BorderBrush="#3A7AB0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Fill color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <WrapPanel Width="164">
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter=""
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22"
+                                                        ToolTip="Remove fill">
+                                                    <TextBlock Text="✕" FontSize="9" Foreground="#CCC"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#FFFFFF"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="White">
+                                                    <Border Background="#FFFFFF" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#D5D8DC"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light grey">
+                                                    <Border Background="#D5D8DC" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#FADBD8"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light pink">
+                                                    <Border Background="#FADBD8" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#FDEBD0"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light orange">
+                                                    <Border Background="#FDEBD0" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#FEF9E7"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light yellow">
+                                                    <Border Background="#FEF9E7" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#D5F5E3"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light green">
+                                                    <Border Background="#D5F5E3" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#D6EAF8"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Light blue">
+                                                    <Border Background="#D6EAF8" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#4472C4"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Blue">
+                                                    <Border Background="#4472C4" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetFillColorCommand}" CommandParameter="#1B4F7A"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Dark blue">
+                                                    <Border Background="#1B4F7A" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                            </WrapPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBox Width="82" Text="#" FontFamily="Consolas" FontSize="11"
+                                                         Padding="4,2" MaxLength="7"
+                                                         Background="#0D3050" Foreground="#CCDDEE" CaretBrush="White"
+                                                         BorderBrush="#3A7AB0" BorderThickness="1"
+                                                         VerticalContentAlignment="Center"
+                                                         ToolTip="Enter a hex color code, e.g. #FADBD8"/>
+                                                <Button Content="✓" Margin="4,0,0,0" Width="22" Height="22"
+                                                        Click="ApplyHexFillColor_Click"
+                                                        Style="{StaticResource SwatchButton}"
+                                                        ToolTip="Apply color"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+
+                                <!-- Arceerkleur toggle -->
+                                <ToggleButton x:Name="HatchColorToggle"
+                                              Style="{StaticResource DropdownToggleButton}"
+                                              ToolTip="Choose hatch color (color of hatch lines)"
+                                              Height="26" MinWidth="46" Margin="0,2,0,0">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="H" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Text=" ▼" FontSize="8" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <Popup PlacementTarget="{Binding ElementName=HatchColorToggle}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsChecked, ElementName=HatchColorToggle, Mode=TwoWay}"
+                                       StaysOpen="False"
+                                       DataContext="{Binding DataContext, ElementName=EditorWindow}">
+                                    <Border Background="#163F60" Padding="7" CornerRadius="4"
+                                            BorderBrush="#3A7AB0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Hatch color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <WrapPanel Width="164">
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter=""
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22"
+                                                        ToolTip="Remove hatch color (use fill color)">
+                                                    <TextBlock Text="✕" FontSize="9" Foreground="#CCC"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#000000"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Black">
+                                                    <Border Background="#000000" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#555555"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Dark grey">
+                                                    <Border Background="#555555" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#C0392B"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Red">
+                                                    <Border Background="#C0392B" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#E67E22"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Orange">
+                                                    <Border Background="#E67E22" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#1E8449"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Green">
+                                                    <Border Background="#1E8449" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#2980B9"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Blue">
+                                                    <Border Background="#2980B9" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetHatchColorCommand}" CommandParameter="#8E44AD"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Purple">
+                                                    <Border Background="#8E44AD" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                            </WrapPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBox Width="82" Text="#" FontFamily="Consolas" FontSize="11"
+                                                         Padding="4,2" MaxLength="7"
+                                                         Background="#0D3050" Foreground="#CCDDEE" CaretBrush="White"
+                                                         BorderBrush="#3A7AB0" BorderThickness="1"
+                                                         VerticalContentAlignment="Center"
+                                                         ToolTip="Enter a hex color code, e.g. #1E8449"/>
+                                                <Button Content="✓" Margin="4,0,0,0" Width="22" Height="22"
+                                                        Click="ApplyHexHatchColor_Click"
+                                                        Style="{StaticResource SwatchButton}"
+                                                        ToolTip="Apply hatch color"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+
+                            </StackPanel>
+
+                            <!-- Patroon: Geen + Effen + Arceerpatroon dropdown -->
+                            <StackPanel Orientation="Vertical" Margin="4,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding SetFillPatternCommand}" CommandParameter="0"
+                                            Style="{StaticResource PatternButton}" Height="26" Padding="5,0"
+                                            ToolTip="No fill — also removes hatch pattern">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="□" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBlock Text=" None" FontSize="9" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding SetFillPatternCommand}" CommandParameter="1"
+                                            Style="{StaticResource PatternButton}" Height="26" Padding="5,0" Margin="2,0,0,0"
+                                            ToolTip="Solid fill with the selected fill color">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="■" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBlock Text=" Solid" FontSize="9" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                                <!-- Arceerpatroon dropdown -->
+                                <ToggleButton x:Name="HatchPatternToggle"
+                                              Style="{StaticResource DropdownToggleButton}"
+                                              ToolTip="Choose hatch pattern (from Rhino document)"
+                                              Height="24" Margin="0,2,0,0" Padding="5,2">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="⬚" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Text=" Hatch Pattern ▼" FontSize="9" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <Popup PlacementTarget="{Binding ElementName=HatchPatternToggle}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsChecked, ElementName=HatchPatternToggle, Mode=TwoWay}"
+                                       StaysOpen="False"
+                                       DataContext="{Binding DataContext, ElementName=EditorWindow}">
+                                    <Border Background="#163F60" Padding="7" CornerRadius="4"
+                                            BorderBrush="#3A7AB0" BorderThickness="1">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                <TextBlock Text="Hatch Pattern" Foreground="#A8C8E8"
+                                                           FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <Button Content="↺" Click="RefreshHatchPatterns_Click"
+                                                        Style="{StaticResource ToolbarButton}"
+                                                        Width="20" Height="16" FontSize="9" Padding="0"
+                                                        Margin="8,0,0,0" ToolTip="Refresh list from Rhino document"/>
+                                            </StackPanel>
+                                            <ListBox x:Name="HatchPatternListBox"
+                                                     ItemsSource="{Binding AvailableHatchPatterns}"
+                                                     SelectionChanged="HatchPatternListBox_SelectionChanged"
+                                                     Background="#0D3050"
+                                                     BorderThickness="0"
+                                                     MaxHeight="240" MinWidth="200">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Height="22">
+                                                            <Border Width="32" Height="16" Margin="0,0,8,0" CornerRadius="2"
+                                                                    BorderBrush="#3A7AB0" BorderThickness="1"
+                                                                    Background="{Binding Converter={StaticResource HatchNameToBrush}}"/>
+                                                            <TextBlock Text="{Binding}" VerticalAlignment="Center"
+                                                                       Foreground="White" FontSize="11" FontFamily="Consolas"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                                <ListBox.ItemContainerStyle>
+                                                    <Style TargetType="ListBoxItem">
+                                                        <Setter Property="Background"  Value="Transparent"/>
+                                                        <Setter Property="Padding"     Value="6,2"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#3A7AB0"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter Property="Background" Value="#2A6A9E"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ListBox.ItemContainerStyle>
+                                            </ListBox>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                                <!-- Schaal arceerpatroon -->
+                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <TextBlock Text="Scale" Foreground="#A8C8E8" FontSize="9"
+                                               VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBox Width="52"
+                                             Text="{Binding SelectedHatchScale, UpdateSourceTrigger=LostFocus}"
+                                             Style="{StaticResource PropBox}"
+                                             ToolTip="Hatch pattern scale (e.g. 3 = 3× larger)"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── RAND ──────────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="BORDER" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Vertical">
+
+                            <!-- Rij 1: presets + kleur -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="✕" Command="{Binding BorderNoneCommand}"
+                                        ToolTip="Remove all borders"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="□" Command="{Binding BorderAllCommand}"
+                                        ToolTip="All borders — thin (0.25 mm)"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="■" Command="{Binding BorderOutsideCommand}"
+                                        ToolTip="Set outside border"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
+                                <Button Content="—" Command="{Binding SetBorderThicknessCommand}"
+                                        CommandParameter="0.25"
+                                        ToolTip="Thickness: thin (0.25 mm)"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="═" Command="{Binding SetBorderThicknessCommand}"
+                                        CommandParameter="0.5"
+                                        ToolTip="Thickness: thick (0.5 mm)"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
+                                <ToggleButton x:Name="BorderColorToggle"
+                                              Style="{StaticResource DropdownToggleButton}"
+                                              ToolTip="Choose border color"
+                                              Height="26" MinWidth="34">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="R" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Text=" ▼" FontSize="7" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <Popup PlacementTarget="{Binding ElementName=BorderColorToggle}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsChecked, ElementName=BorderColorToggle, Mode=TwoWay}"
+                                       StaysOpen="False"
+                                       DataContext="{Binding DataContext, ElementName=EditorWindow}">
+                                    <Border Background="#163F60" Padding="7" CornerRadius="4"
+                                            BorderBrush="#3A7AB0" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="Border color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <WrapPanel Width="164">
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#000000"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Black">
+                                                    <Border Background="#000000" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#555555"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Dark grey">
+                                                    <Border Background="#555555" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#C0392B"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Red">
+                                                    <Border Background="#C0392B" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#E67E22"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Orange">
+                                                    <Border Background="#E67E22" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#1E8449"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Green">
+                                                    <Border Background="#1E8449" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                                <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#2980B9"
+                                                        Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
+                                                        Style="{StaticResource SwatchButton}" Width="22" Height="22" ToolTip="Blue">
+                                                    <Border Background="#2980B9" Width="13" Height="13" CornerRadius="2"/>
+                                                </Button>
+                                            </WrapPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBox Width="82" Text="#" FontFamily="Consolas" FontSize="11"
+                                                         Padding="4,2" MaxLength="7"
+                                                         Background="#0D3050" Foreground="#CCDDEE" CaretBrush="White"
+                                                         BorderBrush="#3A7AB0" BorderThickness="1"
+                                                         VerticalContentAlignment="Center"
+                                                         ToolTip="Enter a hex color code, e.g. #C0392B"/>
+                                                <Button Content="✓" Margin="4,0,0,0" Width="22" Height="22"
+                                                        Click="ApplyHexBorderColor_Click"
+                                                        Style="{StaticResource SwatchButton}"
+                                                        ToolTip="Apply border color"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </StackPanel>
+
+                            <!-- Rij 2: per-zijde knoppen -->
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                <Button Content="⊤" Command="{Binding BorderTopCommand}"
+                                        ToolTip="Toggle top border"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="⊥" Command="{Binding BorderBottomCommand}"
+                                        ToolTip="Toggle bottom border"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="⊣" Command="{Binding BorderLeftCommand}"
+                                        ToolTip="Toggle left border"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                <Button Content="⊢" Command="{Binding BorderRightCommand}"
+                                        ToolTip="Toggle right border"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── IMPORT ─────────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <StackPanel>
+                        <TextBlock Text="IMPORT" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Vertical" Width="87">
+                            <Button Content="📄 CSV"
+                                    Command="{Binding ImportCsvCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import CSV file" HorizontalAlignment="Left"/>
+                            <Button Content="📊 Excel"
+                                    Command="{Binding ImportExcelCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import Excel file" HorizontalAlignment="Left"/>
+                            <Button Content="🔗 Link Excel"
+                                    Command="{Binding LinkExcelCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Link to Excel file (live update)" HorizontalAlignment="Left"/>
+                            <Button Content="🔄 Refresh"
+                                    Command="{Binding RefreshLinkedCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" ToolTip="Refresh linked Excel data" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── UTILITIES ──────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4" Width="130" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleY="0.486"/>
+                            <RotateTransform/>
+                            <TranslateTransform Y="0.501"/>
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <StackPanel>
+                        <TextBlock Text="UTILITIES" Style="{StaticResource GroupLabel}"/>
+                        <StackPanel Orientation="Vertical" Width="117">
+                            <Button Content="1,2,3  Auto-number"
+                                    Command="{Binding AutoNumberCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" ToolTip="Fill first column with row numbers (skips header rows)" Width="116"/>
+                            <Button Content="↔  Auto-width"
+                                    Command="{Binding AutoWidthCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="6,4" ToolTip="Fit column widths to content" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             Eigenschappen strip
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="White"
+                BorderBrush="#D0D8E0" BorderThickness="0,0,0,1" Padding="12,5">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                <TextBlock Text="Table name" Style="{StaticResource PropLabel}"/>
+                <TextBox Width="110" Text="{Binding TableName, UpdateSourceTrigger=LostFocus}"
+                         Style="{StaticResource PropBox}" Margin="0,0,20,0"
+                         ToolTip="Name of the Rhino block (empty = auto)"/>
+
+                <TextBlock Text="Width (mm)" Style="{StaticResource PropLabel}"/>
+                <TextBox Width="52" Text="{Binding SelectedColumnWidth, UpdateSourceTrigger=LostFocus, StringFormat=F1}"
+                         Style="{StaticResource PropBox}" Margin="0,0,16,0"/>
+
+                <TextBlock Text="Height (mm)" Style="{StaticResource PropLabel}"/>
+                <TextBox Width="52" Text="{Binding SelectedRowHeight, UpdateSourceTrigger=LostFocus, StringFormat=F1}"
+                         Style="{StaticResource PropBox}"/>
+
+            </StackPanel>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DataGrid
+        ══════════════════════════════════════════════════════════════════ -->
+        <DataGrid x:Name="TableGrid" Grid.Row="2"
+                  ItemsSource="{Binding GridItems}"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserSortColumns="False"
+                  CanUserReorderColumns="False"
+                  AutoGenerateColumns="False"
+                  SelectionUnit="Cell"
+                  SelectionMode="Extended"
+                  EnableRowVirtualization="True"
+                  EnableColumnVirtualization="True"
+                  HeadersVisibility="All"
+                  GridLinesVisibility="All"
+                  HorizontalGridLinesBrush="#D8DDE3"
+                  VerticalGridLinesBrush="#D8DDE3"
+                  SelectedCellsChanged="TableGrid_SelectedCellsChanged"
+                  CellEditEnding="TableGrid_CellEditEnding"
+                  PreviewKeyDown="TableGrid_PreviewKeyDown"/>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             Statusbalk
+        ══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3" Background="#1B4F7A">
+            <TextBlock Text="{Binding StatusText}" Foreground="White"
+                       Padding="12,4" VerticalAlignment="Center" FontSize="11"/>
+        </Border>
+
+    </Grid>
+</Window>
