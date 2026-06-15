@@ -1,0 +1,1 @@
+# Freeks table plugin
