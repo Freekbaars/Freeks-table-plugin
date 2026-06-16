@@ -50,13 +50,13 @@ namespace RhinoTable.UI.Views
             if (t.IsBuiltIn)
             {
                 TypeChip.Background   = new SolidColorBrush(Color.FromRgb(0x21, 0x5D, 0x9E));
-                TypeLabel.Text        = "INGEBOUWD";
+                TypeLabel.Text        = "BUILT-IN";
                 TypeLabel.Foreground  = Brushes.White;
             }
             else
             {
                 TypeChip.Background   = new SolidColorBrush(Color.FromRgb(0x27, 0xAE, 0x60));
-                TypeLabel.Text        = "EIGEN SJABLOON";
+                TypeLabel.Text        = "CUSTOM TEMPLATE";
                 TypeLabel.Foreground  = Brushes.White;
             }
         }
@@ -82,7 +82,7 @@ namespace RhinoTable.UI.Views
             TemplateManager.Save(template);
             RefreshList();
 
-            // Selecteer het zojuist opgeslagen sjabloon
+            // Select the newly saved template
             TemplateList.SelectedItem = _templates.FirstOrDefault(x => x.Name == template.Name);
         }
 
@@ -91,8 +91,8 @@ namespace RhinoTable.UI.Views
             if (TemplateList.SelectedItem is not TableTemplate t || t.IsBuiltIn) return;
 
             var result = MessageBox.Show(
-                $"Sjabloon '{t.Name}' verwijderen?",
-                "Verwijderen bevestigen",
+                $"Delete template '{t.Name}'?",
+                "Confirm Delete",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 

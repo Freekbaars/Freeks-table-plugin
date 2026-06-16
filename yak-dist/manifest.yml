@@ -1,6 +1,6 @@
 ---
 name: rhinotable
-version: 1.0.2
+version: 1.0.3
 authors:
 - Freek Baars
 description: Create and edit Excel-like annotation tables directly in the Rhino 8 viewport. Supports text formatting, hatch fills, borders, cell merging, and CSV/Excel import. NOTE, This plugin is still a work in progress — updates are on the way. If you run into any issues or have suggestions, feel free to reach out via GitHub. I'm not a professional programmer or UI/UX designer, but I'm eager to learn and improve. The repository will be made public once the code is cleaned up.

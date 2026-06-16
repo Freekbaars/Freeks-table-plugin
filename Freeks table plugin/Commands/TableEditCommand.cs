@@ -16,7 +16,7 @@ namespace Freeks_table_plugin.Commands
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             var go = new GetObject();
-            go.SetCommandPrompt("Selecteer een RhinoTable blok om te bewerken");
+            go.SetCommandPrompt("Select a RhinoTable block to edit");
             go.GeometryFilter = ObjectType.InstanceReference;
             go.Get();
 
@@ -25,7 +25,7 @@ namespace Freeks_table_plugin.Commands
 
             if (go.Object(0).Object() is not InstanceObject instanceObj)
             {
-                RhinoApp.WriteLine("Het geselecteerde object is geen blok.");
+                RhinoApp.WriteLine("The selected object is not a block.");
                 return Result.Failure;
             }
 
@@ -33,14 +33,14 @@ namespace Freeks_table_plugin.Commands
             string json = instanceObj.InstanceDefinition.Description ?? string.Empty;
             if (string.IsNullOrWhiteSpace(json) || !json.TrimStart().StartsWith("{"))
             {
-                RhinoApp.WriteLine("Dit blok is geen RhinoTable (geen tabeldata gevonden).");
+                RhinoApp.WriteLine("This block is not a RhinoTable (no table data found).");
                 return Result.Failure;
             }
 
             var tableData = TableData.Deserialize(json);
             if (tableData == null)
             {
-                RhinoApp.WriteLine("Tabeldata kon niet worden gelezen.");
+                RhinoApp.WriteLine("Table data could not be read.");
                 return Result.Failure;
             }
 

@@ -16,7 +16,7 @@ namespace RhinoTable.UI.Views
 
         public void SetRows(int rows)
         {
-            RowText.Text = $"{rows} rijen geladen…";
+            RowText.Text = $"{rows} rows loaded…";
         }
 
         public void SetDeterminate(int max)

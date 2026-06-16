@@ -84,12 +84,12 @@ namespace RhinoTable.Core.Settings
             // Inhoud per rij [rij][kolom]
             string[][] texts =
             {
-                new[] { "Projectnaam",  "Opdrachtgever", "Datum",  "Tekeningnr." },
-                new[] { "",             "",              "",        ""            },
-                new[] { "Omschrijving", "",              "Schaal",  "Revisie"    },
-                new[] { "",             "",              "",        ""            },
-                new[] { "Ontwerper",    "Gecontroleerd", "Formaat", "Blad"       },
-                new[] { "",             "",              "A3",      "1 / 1"      },
+                new[] { "Project Name",  "Client",    "Date",   "Drawing No." },
+                new[] { "",             "",           "",        ""            },
+                new[] { "Description",  "",           "Scale",   "Revision"   },
+                new[] { "",             "",           "",        ""            },
+                new[] { "Designer",     "Checked by", "Format",  "Sheet"      },
+                new[] { "",             "",           "A3",      "1 / 1"      },
             };
             bool[] header = { true, false, false, false, false, false };
 
@@ -117,8 +117,8 @@ namespace RhinoTable.Core.Settings
             }
             return new TableTemplate
             {
-                Name        = "Tekening titelblok",
-                Description = "Standaard NL tekening titelblok met projectnaam, opdrachtgever, schaal, revisie en bladnummer.",
+                Name        = "Drawing Title Block",
+                Description = "Standard drawing title block with project name, client, scale, revision, and sheet number.",
                 IsBuiltIn   = true,
                 TableData   = td
             };
@@ -134,7 +134,7 @@ namespace RhinoTable.Core.Settings
                 RowHeights      = Enumerable.Repeat(8.0, 8).ToList()
             };
 
-            string[] headers = { "Nr.", "Benaming", "Beschrijving", "Aantal", "Materiaal", "Opmerking" };
+            string[] headers = { "No.", "Name", "Description", "Qty", "Material", "Remarks" };
 
             var hrow = new TableRowData { IsHeader = true };
             foreach (var h in headers)
@@ -169,8 +169,8 @@ namespace RhinoTable.Core.Settings
             }
             return new TableTemplate
             {
-                Name        = "Stuklijst (BOM)",
-                Description = "Bill of Materials met nummer, benaming, beschrijving, aantal, materiaal en opmerking.",
+                Name        = "Bill of Materials (BOM)",
+                Description = "Bill of Materials with number, name, description, quantity, material, and remarks.",
                 IsBuiltIn   = true,
                 TableData   = td
             };
@@ -186,7 +186,7 @@ namespace RhinoTable.Core.Settings
                 RowHeights      = Enumerable.Repeat(8.0, 5).ToList()
             };
 
-            string[] headers = { "Rev.", "Omschrijving", "Datum", "Init." };
+            string[] headers = { "Rev.", "Description", "Date", "Init." };
             var hrow = new TableRowData { IsHeader = true };
             foreach (var h in headers)
                 hrow.Cells.Add(new TableCellData
@@ -227,8 +227,8 @@ namespace RhinoTable.Core.Settings
             }
             return new TableTemplate
             {
-                Name        = "Revisietabel",
-                Description = "Revisietabel voor tekeningen met revisieletter, omschrijving, datum en initialen.",
+                Name        = "Revision Table",
+                Description = "Revision table for drawings with revision letter, description, date, and initials.",
                 IsBuiltIn   = true,
                 TableData   = td
             };

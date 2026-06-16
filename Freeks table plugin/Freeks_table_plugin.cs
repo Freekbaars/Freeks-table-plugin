@@ -41,7 +41,7 @@ namespace Freeks_table_plugin
 
             _ = CheckForUpdateAsync();
 
-            RhinoApp.WriteLine("RhinoTable geladen. Gebruik: TableCreate, TableEdit, TableSync");
+            RhinoApp.WriteLine("RhinoTable loaded. Use: TableCreate, TableEdit, TableSync");
             return LoadReturnCode.Success;
         }
 
@@ -144,7 +144,7 @@ namespace Freeks_table_plugin
             if (synced > 0)
             {
                 doc.Views.Redraw();
-                RhinoApp.WriteLine($"RhinoTable: {Path.GetFileName(path)} gewijzigd — {synced} tabel(len) bijgewerkt.");
+                RhinoApp.WriteLine($"RhinoTable: {Path.GetFileName(path)} changed — {synced} table(s) updated.");
             }
         }
 

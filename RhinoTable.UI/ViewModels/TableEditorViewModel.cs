@@ -555,7 +555,7 @@ namespace RhinoTable.UI.ViewModels
             else
             {
                 var gp = new GetPoint();
-                gp.SetCommandPrompt("Klik het invoegpunt van de tabel");
+                gp.SetCommandPrompt("Click the insertion point of the table");
                 if (gp.Get() != GetResult.Point) return;
                 origin = gp.Point();
             }
