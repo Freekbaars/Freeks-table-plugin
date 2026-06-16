@@ -525,10 +525,23 @@ namespace RhinoTable.UI.Views
             }
         }
 
-        private void RefreshHatchPatterns_Click(object sender, RoutedEventArgs e)
+        private void HatchPatternPopup_Opened(object sender, EventArgs e)
+            => _vm.RefreshHatchPatterns();
+
+        private void HatchScaleCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _vm.RefreshHatchPatterns();
+            if (sender is ComboBox cb && cb.SelectedItem is ComboBoxItem item)
+                _vm.SelectedHatchScale = item.Content?.ToString() ?? "";
         }
+
+        private void HatchRotationCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox cb && cb.SelectedItem is ComboBoxItem item)
+                _vm.SelectedHatchRotation = item.Content?.ToString() ?? "";
+        }
+
+        private void RefreshHatchPatterns_Click(object sender, RoutedEventArgs e)
+            => _vm.RefreshHatchPatterns();
 
         // Leest de TextBox die naast de knop staat (zelfde StackPanel).
         private static string HexFromSibling(object sender)
@@ -553,6 +566,17 @@ namespace RhinoTable.UI.Views
             if (sender is FrameworkElement el && el.Tag is ToggleButton toggle)
                 toggle.IsChecked = false;
         }
+
+        // Sluit de popup voor recente kleuren — de Tag bevat de naam van de ToggleButton.
+        private void RecentColor_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement el && el.Tag is string name
+                && FindName(name) is ToggleButton toggle)
+                toggle.IsChecked = false;
+        }
+
+        private void OpenHelp_Click(object sender, RoutedEventArgs e)
+            => new HelpWindow { Owner = this }.ShowDialog();
 
         private void OpenTemplates_Click(object sender, RoutedEventArgs e)
         {

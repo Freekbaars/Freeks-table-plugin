@@ -54,6 +54,10 @@ namespace RhinoTable.Core.Models
         private double _hatchScale = 1.0;
         public double HatchScale { get => _hatchScale; set { _hatchScale = value > 0 ? value : 1.0; Notify(); } }
 
+        // Rotatie van het Rhino arceerpatroon in graden (standaard 0).
+        private double _hatchRotation = 0.0;
+        public double HatchRotation { get => _hatchRotation; set { _hatchRotation = value; Notify(); } }
+
         // Tekst terugloopt naar volgende regel als de breedte is bereikt
         private bool _wordWrap;
         public bool WordWrap { get => _wordWrap; set { _wordWrap = value; Notify(); } }

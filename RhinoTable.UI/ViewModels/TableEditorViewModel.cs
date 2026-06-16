@@ -7,6 +7,7 @@ using Rhino.Input.Custom;
 using RhinoTable.Core.Import;
 using RhinoTable.Core.Layout;
 using RhinoTable.Core.Models;
+using RhinoTable.Core.Settings;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -87,6 +88,9 @@ namespace RhinoTable.UI.ViewModels
         // Rhino arceerpatronen (geladen uit het document)
         private List<string> _availableHatchPatterns = new();
         public List<string> AvailableHatchPatterns => _availableHatchPatterns;
+
+        // Recente kleuren — gedeeld over alle 4 kleurpickers, max 12
+        public ObservableCollection<string> RecentColors { get; } = new();
 
         // Systeemfonts — eenmalig geladen bij opstart
         public static List<string> AvailableFonts { get; } =
@@ -243,11 +247,32 @@ namespace RhinoTable.UI.ViewModels
             }
         }
 
+        public string SelectedHatchRotation
+        {
+            get => (_selectedCell?.HatchRotation ?? 0.0).ToString("F0");
+            set
+            {
+                if (_selectedCells.Count == 0) return;
+                if (double.TryParse(value.Replace(',', '.'),
+                        System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out double r))
+                {
+                    PushUndoSnapshot();
+                    foreach (var cell in _selectedCells) cell.HatchRotation = r;
+                    GridRefreshRequested?.Invoke();
+                }
+            }
+        }
+
         // ── Constructor ───────────────────────────────────────────────────────
         public TableEditorViewModel(RhinoDoc doc, TableData tableData)
         {
             _doc = doc;
             _tableData = tableData;
+
+            foreach (var c in RecentColorsManager.Load())
+                RecentColors.Add(c);
 
             PlaceTableCommand       = new RelayCommand(PlaceTable);
             ImportCsvCommand        = new RelayCommand(ImportCsv);
@@ -280,6 +305,7 @@ namespace RhinoTable.UI.ViewModels
                 PushUndoSnapshot();
                 string? val = string.IsNullOrEmpty(color) ? null : color;
                 foreach (var cell in _selectedCells) cell.TextColor = val;
+                if (!string.IsNullOrEmpty(color)) AddRecentColor(color!);
                 GridRefreshRequested?.Invoke();
             });
             SetFillColorCommand   = new RelayCommand<string?>(color => {
@@ -292,6 +318,7 @@ namespace RhinoTable.UI.ViewModels
                     if (val == null) cell.FillPattern = 0;
                     else if (cell.FillPattern == 0) cell.FillPattern = 1;
                 }
+                if (!string.IsNullOrEmpty(color)) AddRecentColor(color!);
                 GridRefreshRequested?.Invoke();
             });
             SetHatchColorCommand = new RelayCommand<string?>(color => {
@@ -299,6 +326,7 @@ namespace RhinoTable.UI.ViewModels
                 PushUndoSnapshot();
                 string? val = string.IsNullOrEmpty(color) ? null : color;
                 foreach (var cell in _selectedCells) cell.HatchColor = val;
+                if (!string.IsNullOrEmpty(color)) AddRecentColor(color!);
                 GridRefreshRequested?.Invoke();
             });
             SetFillPatternCommand = new RelayCommand<string?>(param => {
@@ -357,7 +385,11 @@ namespace RhinoTable.UI.ViewModels
             });
             SetBorderColorCommand = new RelayCommand<string?>(color =>
             {
-                if (!string.IsNullOrEmpty(color)) _borderColor = color;
+                if (!string.IsNullOrEmpty(color))
+                {
+                    _borderColor = color;
+                    AddRecentColor(color);
+                }
             });
 
             ToggleHeaderRowCommand = new RelayCommand(ToggleHeaderRow, () => _selectedRow == 0);
@@ -402,6 +434,7 @@ namespace RhinoTable.UI.ViewModels
             Notify(nameof(SelectedCellFont));
             Notify(nameof(SelectedCellFontSize));
             Notify(nameof(SelectedHatchScale));
+            Notify(nameof(SelectedHatchRotation));
             Notify(nameof(IsCurrentRowHeader));
         }
 
@@ -1216,6 +1249,15 @@ namespace RhinoTable.UI.ViewModels
             string r = string.Empty; index++;
             while (index > 0) { index--; r = (char)('A' + index % 26) + r; index /= 26; }
             return r;
+        }
+
+        public void AddRecentColor(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return;
+            var updated = RecentColorsManager.Add(hex, RecentColors.ToList());
+            RecentColors.Clear();
+            foreach (var c in updated) RecentColors.Add(c);
+            RecentColorsManager.Save(RecentColors);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

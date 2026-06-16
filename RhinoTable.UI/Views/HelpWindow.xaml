@@ -1,0 +1,269 @@
+<Window x:Class="RhinoTable.UI.Views.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RhinoTable — Help"
+        Width="500" Height="580"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow"
+        Background="#1A3A55"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+        <Style x:Key="HelpTab" TargetType="TabItem">
+            <Setter Property="Foreground"      Value="#A8C8E8"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Background"      Value="#0D3050"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd" Background="#0D3050" CornerRadius="4,4,0,0"
+                                Padding="14,6" Margin="0,0,3,0">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#163F60"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1B4F7A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseBtn" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="3" Padding="8,4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3A7AB0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#163F60" Padding="20,14">
+            <StackPanel Orientation="Horizontal">
+                <Border Background="#0D3050" CornerRadius="14" Width="28" Height="28"
+                        VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock Text="?" FontSize="14" FontWeight="Bold" Foreground="#4FC3F7"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="RhinoTable Help" FontSize="14" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock x:Name="VersionLabel" FontSize="10" Foreground="#7AAACC"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0"
+                    Margin="16,12,16,0" Padding="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem" BasedOn="{StaticResource HelpTab}"/>
+            </TabControl.Resources>
+
+            <!-- ── Keyboard Shortcuts ──────────────────────────────────────── -->
+            <TabItem Header="Keyboard Shortcuts">
+                <ScrollViewer Background="#163F60" VerticalScrollBarVisibility="Auto" Padding="16,14">
+                    <StackPanel>
+
+                        <TextBlock Text="NAVIGATION" Foreground="#4FC3F7" FontSize="10"
+                                   FontWeight="Bold" Margin="0,0,0,8"/>
+
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Tab" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Move to next cell"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Shift + Tab" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Move to previous cell"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="↑  ↓  ←  →" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Foreground="#C8E0F4" FontSize="11"
+                                       VerticalAlignment="Center" TextWrapping="Wrap" Margin="10,0,0,0"
+                                       Text="Navigate between cells (commits current edit)"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,10,0,10"/>
+                        <TextBlock Text="EDITING" Foreground="#4FC3F7" FontSize="10"
+                                   FontWeight="Bold" Margin="0,0,0,8"/>
+
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Delete" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Clear content of selected cell(s)"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Ctrl + C" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Copy selected cell(s)"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Ctrl + V" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Paste into selected cell(s)"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,10,0,10"/>
+                        <TextBlock Text="UNDO / REDO" Foreground="#4FC3F7" FontSize="10"
+                                   FontWeight="Bold" Margin="0,0,0,8"/>
+
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Ctrl + Z" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Undo (up to 20 steps)"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Background="#0D3050" CornerRadius="3" Padding="7,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Ctrl + Y" FontFamily="Consolas" FontSize="11" Foreground="#4FC3F7"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="Redo"
+                                       Foreground="#C8E0F4" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ── Features ───────────────────────────────────────────────── -->
+            <TabItem Header="Features">
+                <ScrollViewer Background="#163F60" VerticalScrollBarVisibility="Auto" Padding="16,14" Margin="-3,0,3,0">
+                    <StackPanel>
+
+                        <TextBlock Text="STRUCTURE" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Add and remove rows and columns. Insert above/below or left/right of the current cell. Use Auto-width to fit column widths to their content."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="TEXT" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Format text with Bold, Italic, Subscript and Superscript. Choose any installed system font and size. Align content left, center or right. Merge adjacent cells horizontally or vertically."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="COLORS" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Set text color, fill color, hatch line color, and border color independently per cell. Use the hex input field for any custom color. The last 12 used colors are saved and shared across all four color pickers."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="FILL &amp; HATCH" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Fill cells with a solid color or apply a hatch pattern. Hatch patterns are loaded from the active Rhino document. Click ↺ to refresh the list after adding new patterns. Adjust the scale to size the pattern."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="BORDERS" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Apply borders to all sides, outside only, or toggle individual sides (top, bottom, left, right). Choose thin (0.25 mm) or thick (0.5 mm) lines with a custom color."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="TEMPLATES" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Save any table layout as a reusable template and load it whenever you need it. Three built-in templates are included: Drawing Title Block, Bill of Materials (BOM), and Revision Table."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="IMPORT" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,3"
+                                   Text="Import data from a CSV file or an Excel (.xlsx) workbook. Link to an Excel file for live updates — click Refresh to pull in the latest data without reopening the editor."/>
+
+                        <Rectangle Height="1" Fill="#3A7AB0" Margin="0,9,0,9"/>
+                        <TextBlock Text="AUTO-UPDATE" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Foreground="#C8E0F4" FontSize="11" TextWrapping="Wrap"
+                                   Text="RhinoTable checks the Yak package manager once per day on startup. If a newer version is available, a notification appears with a direct link to the Package Manager."/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#163F60" Padding="16,10">
+            <Grid>
+                <TextBlock Text="github.com/Freekbaars/Freeks-table-plugin"
+                           Foreground="#3A7AB0" FontSize="10" VerticalAlignment="Center"
+                           TextDecorations="Underline" Cursor="Hand"
+                           HorizontalAlignment="Left"
+                           MouseLeftButtonUp="GitHub_Click"/>
+                <Button Content="Close" Width="72" Height="28"
+                        HorizontalAlignment="Right"
+                        Click="Close_Click"
+                        Background="#2A6A9E" Foreground="White"
+                        BorderBrush="#3A7AB0" BorderThickness="1"
+                        Style="{StaticResource CloseBtn}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

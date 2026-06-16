@@ -4,7 +4,7 @@
         xmlns:conv="clr-namespace:RhinoTable.UI.Converters"
         x:Name="EditorWindow"
         Title="RhinoTable — Table Editor"
-        Width="1327" Height="690"
+        Width="1481" Height="690"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         Background="#F2F5F8">
@@ -205,6 +205,38 @@
                                             BorderBrush="#3A7AB0" BorderThickness="1">
                                         <StackPanel>
                                             <TextBlock Text="Text color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <!-- Recente kleuren -->
+                                            <StackPanel Margin="0,0,0,5">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RecentColors.Count}" Value="0">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
+                                                <ItemsControl ItemsSource="{Binding RecentColors}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Width="22" Height="22"
+                                                                    Style="{StaticResource SwatchButton}"
+                                                                    Command="{Binding DataContext.SetTextColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Click="RecentColor_Click"
+                                                                    Tag="TextColorToggle"
+                                                                    ToolTip="{Binding}">
+                                                                <Border Width="13" Height="13" CornerRadius="2" Background="{Binding}"/>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Rectangle Height="1" Fill="#3A7AB0" Margin="0,4,0,2"/>
+                                            </StackPanel>
                                             <WrapPanel Width="164">
                                                 <Button Command="{Binding SetTextColorCommand}" CommandParameter=""
                                                         Click="ColorPopupButton_Click" Tag="{Binding ElementName=TextColorToggle}"
@@ -384,6 +416,38 @@
                                             BorderBrush="#3A7AB0" BorderThickness="1">
                                         <StackPanel>
                                             <TextBlock Text="Fill color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <!-- Recente kleuren -->
+                                            <StackPanel Margin="0,0,0,5">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RecentColors.Count}" Value="0">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
+                                                <ItemsControl ItemsSource="{Binding RecentColors}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Width="22" Height="22"
+                                                                    Style="{StaticResource SwatchButton}"
+                                                                    Command="{Binding DataContext.SetFillColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Click="RecentColor_Click"
+                                                                    Tag="FillColorToggle"
+                                                                    ToolTip="{Binding}">
+                                                                <Border Width="13" Height="13" CornerRadius="2" Background="{Binding}"/>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Rectangle Height="1" Fill="#3A7AB0" Margin="0,4,0,2"/>
+                                            </StackPanel>
                                             <WrapPanel Width="164">
                                                 <Button Command="{Binding SetFillColorCommand}" CommandParameter=""
                                                         Click="ColorPopupButton_Click" Tag="{Binding ElementName=FillColorToggle}"
@@ -472,6 +536,38 @@
                                             BorderBrush="#3A7AB0" BorderThickness="1">
                                         <StackPanel>
                                             <TextBlock Text="Hatch color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <!-- Recente kleuren -->
+                                            <StackPanel Margin="0,0,0,5">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RecentColors.Count}" Value="0">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
+                                                <ItemsControl ItemsSource="{Binding RecentColors}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Width="22" Height="22"
+                                                                    Style="{StaticResource SwatchButton}"
+                                                                    Command="{Binding DataContext.SetHatchColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Click="RecentColor_Click"
+                                                                    Tag="HatchColorToggle"
+                                                                    ToolTip="{Binding}">
+                                                                <Border Width="13" Height="13" CornerRadius="2" Background="{Binding}"/>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Rectangle Height="1" Fill="#3A7AB0" Margin="0,4,0,2"/>
+                                            </StackPanel>
                                             <WrapPanel Width="164">
                                                 <Button Command="{Binding SetHatchColorCommand}" CommandParameter=""
                                                         Click="ColorPopupButton_Click" Tag="{Binding ElementName=HatchColorToggle}"
@@ -614,14 +710,44 @@
                                         </StackPanel>
                                     </Border>
                                 </Popup>
-                                <!-- Schaal arceerpatroon -->
+                                <!-- Schaal + rotatie arceerpatroon -->
                                 <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                     <TextBlock Text="Scale" Foreground="#A8C8E8" FontSize="9"
-                                               VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                    <TextBox Width="52"
-                                             Text="{Binding SelectedHatchScale, UpdateSourceTrigger=LostFocus}"
-                                             Style="{StaticResource PropBox}"
-                                             ToolTip="Hatch pattern scale (e.g. 3 = 3× larger)"/>
+                                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <ComboBox Width="56" IsEditable="True"
+                                              Text="{Binding SelectedHatchScale, UpdateSourceTrigger=LostFocus}"
+                                              SelectionChanged="HatchScaleCombo_SelectionChanged"
+                                              Style="{StaticResource PropComboBox}"
+                                              ToolTip="Hatch pattern scale — choose a preset or type a custom value">
+                                        <ComboBoxItem Content="1"/>
+                                        <ComboBoxItem Content="5"/>
+                                        <ComboBoxItem Content="10"/>
+                                        <ComboBoxItem Content="15"/>
+                                        <ComboBoxItem Content="20"/>
+                                        <ComboBoxItem Content="25"/>
+                                        <ComboBoxItem Content="30"/>
+                                        <ComboBoxItem Content="35"/>
+                                        <ComboBoxItem Content="40"/>
+                                        <ComboBoxItem Content="45"/>
+                                        <ComboBoxItem Content="50"/>
+                                    </ComboBox>
+                                    <TextBlock Text="Rot°" Foreground="#A8C8E8" FontSize="9"
+                                               VerticalAlignment="Center" Margin="8,0,4,0"/>
+                                    <ComboBox Width="56" IsEditable="True"
+                                              Text="{Binding SelectedHatchRotation, UpdateSourceTrigger=LostFocus}"
+                                              SelectionChanged="HatchRotationCombo_SelectionChanged"
+                                              Style="{StaticResource PropComboBox}"
+                                              ToolTip="Hatch rotation in degrees — choose a preset or type a custom value">
+                                        <ComboBoxItem Content="0"/>
+                                        <ComboBoxItem Content="45"/>
+                                        <ComboBoxItem Content="90"/>
+                                        <ComboBoxItem Content="135"/>
+                                        <ComboBoxItem Content="180"/>
+                                        <ComboBoxItem Content="225"/>
+                                        <ComboBoxItem Content="270"/>
+                                        <ComboBoxItem Content="315"/>
+                                        <ComboBoxItem Content="360"/>
+                                    </ComboBox>
                                 </StackPanel>
                             </StackPanel>
 
@@ -676,6 +802,38 @@
                                             BorderBrush="#3A7AB0" BorderThickness="1">
                                         <StackPanel>
                                             <TextBlock Text="Border color" Foreground="#A8C8E8" FontSize="9" Margin="0,0,0,5"/>
+                                            <!-- Recente kleuren -->
+                                            <StackPanel Margin="0,0,0,5">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RecentColors.Count}" Value="0">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
+                                                <ItemsControl ItemsSource="{Binding RecentColors}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Width="22" Height="22"
+                                                                    Style="{StaticResource SwatchButton}"
+                                                                    Command="{Binding DataContext.SetBorderColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Click="RecentColor_Click"
+                                                                    Tag="BorderColorToggle"
+                                                                    ToolTip="{Binding}">
+                                                                <Border Width="13" Height="13" CornerRadius="2" Background="{Binding}"/>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Rectangle Height="1" Fill="#3A7AB0" Margin="0,4,0,2"/>
+                                            </StackPanel>
                                             <WrapPanel Width="164">
                                                 <Button Command="{Binding SetBorderColorCommand}" CommandParameter="#000000"
                                                         Click="ColorPopupButton_Click" Tag="{Binding ElementName=BorderColorToggle}"
@@ -793,6 +951,14 @@
                     </StackPanel>
                 </Border>
 
+                <Rectangle Style="{StaticResource GroupSep}"/>
+
+                <!-- ── HELP ───────────────────────────────────────────────── -->
+                <Border Style="{StaticResource ToolGroup}" Padding="6,4">
+                    <Button Content="? Help" Click="OpenHelp_Click"
+                            Style="{StaticResource ToolbarButton}"
+                            Padding="8,4" ToolTip="Show keyboard shortcuts and feature overview"/>
+                </Border>
 
             </StackPanel>
         </Border>

@@ -89,7 +89,7 @@ namespace RhinoTable.Core.Layout
                         // Nieuw: Rhino arceerpatroon bovenop eventuele achtergrondkleur
                         DrawRhinoHatch(geometryList, attributesList,
                             x0, x1, y0, y1, cell.HatchPatternName, hatchColor, bgColor, doc,
-                            cell.HatchScale);
+                            cell.HatchScale, cell.HatchRotation);
                     }
                     else if (cell.FillPattern > 0)
                     {
@@ -207,7 +207,7 @@ namespace RhinoTable.Core.Layout
             List<GeometryBase> geoms, List<ObjectAttributes> attrs,
             double x0, double x1, double y0, double y1,
             string patternName, Color hatchColor, Color? bgColor, RhinoDoc? doc,
-            double scale = 1.0)
+            double scale = 1.0, double rotationDegrees = 0.0)
         {
             if (doc == null) return;
 
@@ -241,7 +241,8 @@ namespace RhinoTable.Core.Layout
             var rhinoPattern = doc.HatchPatterns.FindName(patternName);
             if (rhinoPattern != null)
             {
-                var hs = Hatch.Create(new Curve[] { MakeBoundary() }, rhinoPattern.Index, 0, scale, tol);
+                double rotRad = rotationDegrees * Math.PI / 180.0;
+                var hs = Hatch.Create(new Curve[] { MakeBoundary() }, rhinoPattern.Index, rotRad, scale, tol);
                 if (hs != null && hs.Length > 0)
                     foreach (var h in hs) { geoms.Add(h); attrs.Add(Attr(hatchColor)); }
             }

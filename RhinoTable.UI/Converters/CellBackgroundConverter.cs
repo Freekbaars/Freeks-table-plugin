@@ -114,13 +114,66 @@ namespace RhinoTable.UI.Converters
     /// <summary>Arceerpatroonnaam (string) → VisualBrush preview voor de dropdown.</summary>
     public class HatchNameToBrushConverter : IValueConverter
     {
+        private static readonly SolidColorBrush _white = new(Colors.White);
+        private static readonly SolidColorBrush _dark  = new(Color.FromRgb(0x40, 0x40, 0x40));
+
         public object Convert(object value, Type t, object p, CultureInfo c)
         {
             string? name = value as string;
-            if (string.IsNullOrEmpty(name) || name == "(geen arcering)")
+            if (string.IsNullOrEmpty(name) || name == "(no hatch pattern)")
                 return Brushes.Transparent;
-            return FillPatternBrushConverter.BuildBrush(1, "#FFFFFF", "#404040", name);
+
+            return name.ToLowerInvariant() switch
+            {
+                "solid"  => new SolidColorBrush(Color.FromRgb(0x70, 0x70, 0x70)),
+                "hatch1" => HatchPreview(8,  canvas => { Add(canvas, Diag(0, 8)); }),
+                "hatch2" => HatchPreview(6,  canvas => { Add(canvas, Diag(0, 6)); Add(canvas, Diag(-3, 6)); }),
+                "hatch3" => HatchPreview(4,  canvas => { Add(canvas, Diag(0, 4)); }),
+                "grid"   => HatchPreview(8,  canvas => { Add(canvas, H(4, 8)); Add(canvas, V(4, 8)); }),
+                "plus"   => HatchPreview(10, canvas => { Add(canvas, H(5, 10)); Add(canvas, V(5, 10)); }),
+                "dash"   => HatchPreview(10, canvas => { Add(canvas, DashH(0, 5, 8)); }),
+                _        => HatchPreview(8,  canvas => { Add(canvas, Diag(0, 8)); Add(canvas, AntiDiag(8, 8)); }),
+            };
         }
+
+        // Hulp: bouw een 'tiled' VisualBrush op een witte canvas van size×size.
+        private static VisualBrush HatchPreview(double size, Action<Canvas> addLines)
+        {
+            var canvas = new Canvas { Width = size, Height = size, Background = _white };
+            addLines(canvas);
+            return new VisualBrush(canvas)
+            {
+                TileMode      = TileMode.Tile,
+                Stretch       = Stretch.None,
+                Viewbox       = new Rect(0, 0, size, size),
+                ViewboxUnits  = BrushMappingMode.Absolute,
+                Viewport      = new Rect(0, 0, size, size),
+                ViewportUnits = BrushMappingMode.Absolute,
+            };
+        }
+
+        private static void Add(Canvas c, UIElement e) => c.Children.Add(e);
+
+        // Diagonaallijn (links-boven naar rechts-onder), tegel-randdekking via extra lijnen.
+        private static Line Diag(double offset, double size)
+            => L(offset - 1, -1, offset + size + 1, size + 1);
+
+        // Anti-diagonaal (rechts-boven naar links-onder).
+        private static Line AntiDiag(double size, double tileSize)
+            => L(size + 1, -1, -1, tileSize + 1);
+
+        private static Line H(double y, double size)  => L(0, y, size, y);
+        private static Line V(double x, double size)  => L(x, 0, x, size);
+
+        private static Line DashH(double x, double y, double size)
+        {
+            var l = L(x, y, size / 2, y);
+            l.StrokeDashArray = new DoubleCollection { 3, 3 };
+            return l;
+        }
+
+        private static Line L(double x1, double y1, double x2, double y2)
+            => new() { X1 = x1, Y1 = y1, X2 = x2, Y2 = y2, Stroke = _dark, StrokeThickness = 1 };
 
         public object ConvertBack(object value, Type t, object p, CultureInfo c)
             => DependencyProperty.UnsetValue;
@@ -154,10 +207,9 @@ namespace RhinoTable.UI.Converters
 
             if (!string.IsNullOrEmpty(hatchPatternName))
             {
-                // Rhino arceerpatroon: toon achtergrond + diagonale lijnen als visuele indicator.
-                // De exacte penseelvorm is niet beschikbaar in WPF; de Rhino-uitvoer gebruikt het echte patroon.
+                // Cel-achtergrond bij Rhino hatch: toon vulkleur + diagonale lijnpreview.
                 Color lineColor = ColorStringToBrushConverter.ParseHex(hatchColorHex) ?? bgColor ?? _defaultFill;
-                return MakeHatchBrush(lineColor, 4, bgColor);
+                return MakeHatchBrush(lineColor, 4, bgColor ?? (Color?)Colors.Transparent);
             }
 
             if (pattern == 0) return Brushes.Transparent;
