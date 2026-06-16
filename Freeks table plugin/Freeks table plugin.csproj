@@ -12,12 +12,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0</Version>
+    <Version>1.0.2</Version>
     <Title>RhinoTable</Title>
     <Authors>Freek Baars</Authors>
     <Company>Freek Baars</Company>
-    <Description>Professional table creator for Rhino 8. Create and edit Excel-like annotation tables directly in the Rhino viewport.</Description>
-    <PackageProjectUrl>https://github.com</PackageProjectUrl>
+    <Description>Professional table creator for Rhino 8. Create and edit Excel-like annotation tables directly in Rhino.</Description>
+    <PackageProjectUrl>https://github.com/Freekbaars/Freeks-table-plugin</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

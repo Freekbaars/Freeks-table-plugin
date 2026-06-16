@@ -43,6 +43,7 @@ namespace RhinoTable.UI.Views
             _vm.ColumnsChanged       += RebuildColumns;
             _vm.RequestClose         += () => Close();
             _vm.GridRefreshRequested += RefreshGridAfterFormat;
+            _vm.GridSyncRequested    += SyncSizesFromDataGrid;
             WireImportProgress();
 
             // Rijnummers in de rijkopjes — header rijen tonen "H", overige tellen vanaf 1
@@ -71,10 +72,7 @@ namespace RhinoTable.UI.Views
                     && e.OriginalSource is DataGridCell cell
                     && !cell.IsEditing
                     && !cell.IsReadOnly)
-                {
-                    _vm.PushUndoSnapshot();
                     TableGrid.BeginEdit();
-                }
             };
 
             RebuildColumns();
@@ -155,11 +153,72 @@ namespace RhinoTable.UI.Views
             }
         }
 
+        // ── Grootte-sync (gesleepte breedte/hoogte → model) ──────────────────
+
+        private void SyncSizesFromDataGrid()
+        {
+            var colWidths = TableGrid.Columns
+                .OrderBy(c => c.DisplayIndex)
+                .Select(c => c.ActualWidth / PxPerMm)
+                .ToList();
+            _vm.SyncColumnWidths(colWidths);
+
+            var rowHeightsMm = new List<double>();
+            for (int i = 0; i < TableGrid.Items.Count; i++)
+            {
+                double h = (TableGrid.ItemContainerGenerator.ContainerFromIndex(i) as DataGridRow)
+                           ?.ActualHeight / PxPerMm ?? 0;
+                rowHeightsMm.Add(h);
+            }
+            _vm.SyncRowHeights(rowHeightsMm);
+        }
+
+        // ── Kolom drag-and-drop herordening ───────────────────────────────────
+
+        private bool _suppressColumnReorder;
+        private readonly Dictionary<DataGridColumn, int> _columnOriginalIndex = new();
+
+        private void TableGrid_ColumnReordered(object sender, DataGridColumnEventArgs e)
+        {
+            if (_suppressColumnReorder) return;
+            _suppressColumnReorder = true;
+            try
+            {
+                var newOrder = TableGrid.Columns
+                    .OrderBy(c => c.DisplayIndex)
+                    .Select(c => _columnOriginalIndex.TryGetValue(c, out int idx) ? idx : c.DisplayIndex)
+                    .ToList();
+                _vm.ReorderColumns(newOrder);
+            }
+            finally
+            {
+                _suppressColumnReorder = false;
+            }
+        }
+
+        // ── Cel-navigatie helper ──────────────────────────────────────────────
+
+        private void NavigateToCell(int row, int col)
+        {
+            if (row < 0 || row >= TableGrid.Items.Count) return;
+            if (col < 0 || col >= TableGrid.Columns.Count) return;
+            var item = TableGrid.Items[row];
+            var column = TableGrid.Columns[col];
+            TableGrid.CurrentCell = new DataGridCellInfo(item, column);
+            _suppressSelectionChanged = true;
+            TableGrid.SelectedCells.Clear();
+            TableGrid.SelectedCells.Add(new DataGridCellInfo(item, column));
+            _suppressSelectionChanged = false;
+            TableGrid.ScrollIntoView(item, column);
+            _vm.SetSelectedCells(new List<(int, int)> { (row, col) });
+        }
+
         // ── Kolommen aanmaken ─────────────────────────────────────────────────
 
         private void RebuildColumns()
         {
             TableGrid.Columns.Clear();
+            _columnOriginalIndex.Clear();
 
             var table = _vm.TableData;
             for (int c = 0; c < table.ColumnWidths.Count; c++)
@@ -263,13 +322,15 @@ namespace RhinoTable.UI.Views
             }));
             editTemplate.VisualTree = tbx;
 
-            return new DataGridTemplateColumn
+            var col = new DataGridTemplateColumn
             {
                 Header              = ColLetter(ci),
                 CellTemplate        = cellTemplate,
                 CellEditingTemplate = editTemplate,
                 Width               = new DataGridLength(widthPx),
             };
+            _columnOriginalIndex[col] = ci;
+            return col;
         }
 
         private static void ApplyFillPattern(Border fillBg, int ci)
@@ -333,41 +394,94 @@ namespace RhinoTable.UI.Views
             _vm.SetSelectedCells(cells);
         }
 
-        private void TableGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e) { }
+        private void TableGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            // Push snapshot BEFORE the LostFocus binding commits the new text to the model,
+            // so each committed text edit becomes a distinct undo step.
+            if (e.EditAction == DataGridEditAction.Commit)
+                _vm.PushUndoSnapshot();
+        }
 
         private void TableGrid_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            bool ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            bool ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            bool shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
 
-            if (e.Key == Key.Delete && TableGrid.CurrentCell.IsValid)
+            int totalRows = _vm.TableData.Rows.Count;
+            int totalCols = _vm.TableData.ColumnWidths.Count;
+            int curRow    = _vm.CurrentRow;
+            int curCol    = _vm.CurrentCol;
+
+            // ── Delete ────────────────────────────────────────────────────────
+            if (e.Key == Key.Delete && Keyboard.FocusedElement is not TextBox
+                && TableGrid.CurrentCell.IsValid)
             {
-                int col = TableGrid.CurrentCell.Column?.DisplayIndex ?? -1;
-                int row = TableGrid.Items.IndexOf(TableGrid.CurrentCell.Item);
-                _vm.ClearSelectedCells(row, col);
+                _vm.ClearSelectedCells(curRow, curCol);
                 e.Handled = true;
                 return;
             }
 
+            // ── Ctrl shortcuts ────────────────────────────────────────────────
             if (ctrl)
             {
                 switch (e.Key)
                 {
                     case Key.Z:
-                        // Cancel current cell edit first so its pending text isn't committed over the restored snapshot
                         try { TableGrid.CancelEdit(DataGridEditingUnit.Cell); } catch { }
                         try { TableGrid.CancelEdit(DataGridEditingUnit.Row);  } catch { }
                         _vm.UndoCommand.Execute(null);
-                        e.Handled = true;
-                        break;
+                        e.Handled = true; return;
                     case Key.Y:
                         try { TableGrid.CancelEdit(DataGridEditingUnit.Cell); } catch { }
                         try { TableGrid.CancelEdit(DataGridEditingUnit.Row);  } catch { }
                         _vm.RedoCommand.Execute(null);
-                        e.Handled = true;
-                        break;
-                    case Key.C: _vm.CopyCommand.Execute(null);  e.Handled = true; break;
-                    case Key.V: _vm.PasteCommand.Execute(null); e.Handled = true; break;
+                        e.Handled = true; return;
+                    case Key.C: _vm.CopyCommand.Execute(null);  e.Handled = true; return;
+                    case Key.V: _vm.PasteCommand.Execute(null); e.Handled = true; return;
                 }
+                return;
+            }
+
+            // ── Tab — commit en ga naar volgende/vorige cel ───────────────────
+            if (e.Key == Key.Tab && curRow >= 0 && curCol >= 0)
+            {
+                if (Keyboard.FocusedElement is TextBox tabBox)
+                    tabBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+                try { TableGrid.CommitEdit(DataGridEditingUnit.Cell, true); } catch { }
+                try { TableGrid.CommitEdit(DataGridEditingUnit.Row,  true); } catch { }
+
+                int r = curRow, c = curCol;
+                if (shift) { c--; if (c < 0) { c = totalCols - 1; r--; } }
+                else       { c++; if (c >= totalCols) { c = 0; r++; } }
+
+                if (r >= 0 && r < totalRows)
+                    NavigateToCell(r, Math.Max(0, Math.Min(c, totalCols - 1)));
+                e.Handled = true;
+                return;
+            }
+
+            // ── Pijltoetsen — commit huidige cel en navigeer ─────────────────
+            // Opmerking: !isEditing check is hier bewust weggelaten — cellen zijn altijd
+            // in edit-mode door GotFocus→BeginEdit(), dus die check blokkeerde altijd navigatie.
+            if (!ctrl && curRow >= 0 && curCol >= 0)
+            {
+                int r = curRow, c = curCol;
+                switch (e.Key)
+                {
+                    case Key.Up:    r--; break;
+                    case Key.Down:  r++; break;
+                    case Key.Left:  c--; break;
+                    case Key.Right: c++; break;
+                    default: return;
+                }
+                if (Keyboard.FocusedElement is TextBox arrowBox)
+                    arrowBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+                try { TableGrid.CommitEdit(DataGridEditingUnit.Cell, true); } catch { }
+                try { TableGrid.CommitEdit(DataGridEditingUnit.Row,  true); } catch { }
+                r = Math.Max(0, Math.Min(r, totalRows - 1));
+                c = Math.Max(0, Math.Min(c, totalCols - 1));
+                NavigateToCell(r, c);
+                e.Handled = true;
             }
         }
 
@@ -440,11 +554,23 @@ namespace RhinoTable.UI.Views
                 toggle.IsChecked = false;
         }
 
+        private void OpenTemplates_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new TemplateManagerWindow(_vm.TableData) { Owner = this };
+            if (dlg.ShowDialog() == true && dlg.LoadedTemplate != null)
+                _vm.LoadTemplate(dlg.LoadedTemplate);
+        }
+
         private static string ColLetter(int index)
         {
             string r = string.Empty; index++;
             while (index > 0) { index--; r = (char)('A' + index % 26) + r; index /= 26; }
             return r;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

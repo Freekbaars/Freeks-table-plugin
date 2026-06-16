@@ -68,6 +68,7 @@ namespace RhinoTable.UI.ViewModels
         public ICommand InsertColumnRightCommand { get; }
 
         public ICommand MergeCellsCommand      { get; }
+        public ICommand MergeDownCommand       { get; }
         public ICommand BoldCommand            { get; }
         public ICommand ItalicCommand          { get; }
         public ICommand InsertSubCommand       { get; }
@@ -126,6 +127,15 @@ namespace RhinoTable.UI.ViewModels
 
         // Header rij
         public ICommand ToggleHeaderRowCommand { get; }
+
+        // Rij/kolom verplaatsen
+        public ICommand MoveRowUpCommand       { get; }
+        public ICommand MoveRowDownCommand     { get; }
+        public ICommand MoveColumnLeftCommand  { get; }
+        public ICommand MoveColumnRightCommand { get; }
+
+        // Grid-grootte synchronisatie (view → model vóór Place)
+        public event Action? GridSyncRequested;
 
         // ── Bound properties ──────────────────────────────────────────────────
         public string StatusText
@@ -255,7 +265,8 @@ namespace RhinoTable.UI.ViewModels
             InsertColumnLeftCommand = new RelayCommand(InsertColLeft,   () => _selectedCol >= 0);
             InsertColumnRightCommand= new RelayCommand(InsertColRight,  () => _selectedCol >= 0);
 
-            MergeCellsCommand       = new RelayCommand(MergeCells,      () => _selectedCell != null);
+            MergeCellsCommand       = new RelayCommand(MergeCells,      () => _selectedCells.Count > 0);
+            MergeDownCommand        = new RelayCommand(MergeDown,       () => _selectedCells.Count > 0);
             BoldCommand             = new RelayCommand(ToggleBold,      () => _selectedCells.Count > 0);
             ItalicCommand           = new RelayCommand(ToggleItalic,    () => _selectedCells.Count > 0);
             InsertSubCommand        = new RelayCommand(InsertSubscript,  () => _selectedCell != null);
@@ -349,7 +360,12 @@ namespace RhinoTable.UI.ViewModels
                 if (!string.IsNullOrEmpty(color)) _borderColor = color;
             });
 
-            ToggleHeaderRowCommand = new RelayCommand(ToggleHeaderRow, () => _selectedRow >= 0);
+            ToggleHeaderRowCommand = new RelayCommand(ToggleHeaderRow, () => _selectedRow == 0);
+
+            MoveRowUpCommand       = new RelayCommand(MoveRowUp,      () => _selectedRow > 0);
+            MoveRowDownCommand     = new RelayCommand(MoveRowDown,     () => _selectedRow >= 0 && _selectedRow < _tableData.Rows.Count - 1);
+            MoveColumnLeftCommand  = new RelayCommand(MoveColumnLeft,  () => _selectedCol > 0);
+            MoveColumnRightCommand = new RelayCommand(MoveColumnRight, () => _selectedCol >= 0 && _selectedCol < _tableData.ColumnWidths.Count - 1);
 
             RebuildGridItems();
         }
@@ -410,6 +426,28 @@ namespace RhinoTable.UI.ViewModels
             StatusText = $"{col}{_selectedRow + 1}   width {w:F1} mm  ×  height {h:F1} mm";
         }
 
+        // ── Sjabloon laden ────────────────────────────────────────────────────
+        public void LoadTemplate(TableData templateData)
+        {
+            // Behoud de Rhino-blokverwijzing van de huidige tabel (voor TableEdit-flow)
+            var sourceId = _tableData.SourceObjectId;
+            _tableData = templateData;
+            _tableData.SourceObjectId = sourceId;
+
+            _undoStack.Clear();
+            _redoStack.Clear();
+            _selectedRow = -1;
+            _selectedCol = -1;
+            _selectedCell = null;
+            _selectedCells.Clear();
+            _selectedCellPositions.Clear();
+
+            Notify(nameof(TableName));
+            Notify(nameof(IsEditingExisting));
+            Notify(nameof(PlaceButtonLabel));
+            RebuildGridItems(syncFirst: false);
+        }
+
         // ── Grid rebuild ──────────────────────────────────────────────────────
         // syncFirst=false bij een volledige vervanging van _tableData (import),
         // want anders overschrijft SyncObservableToModel de zojuist ingeladen
@@ -433,9 +471,39 @@ namespace RhinoTable.UI.ViewModels
             }
         }
 
+        // Aangeroepen door de view vóór Place om gesleepte breedte/hoogte terug te schrijven.
+        public void SyncColumnWidths(IReadOnlyList<double> widthsMm)
+        {
+            for (int i = 0; i < widthsMm.Count && i < _tableData.ColumnWidths.Count; i++)
+                if (widthsMm[i] > 0) _tableData.ColumnWidths[i] = widthsMm[i];
+        }
+
+        public void SyncRowHeights(IReadOnlyList<double> heightsMm)
+        {
+            for (int i = 0; i < heightsMm.Count && i < _tableData.RowHeights.Count; i++)
+                if (heightsMm[i] > 0) _tableData.RowHeights[i] = heightsMm[i];
+        }
+
+        // Aangeroepen door de view na kolom drag-and-drop; newOrder[i] = oude kolomindex op nieuwe positie i.
+        public void ReorderColumns(List<int> newOrder)
+        {
+            if (newOrder.Count != _tableData.ColumnWidths.Count) return;
+            PushUndoSnapshot();
+            var newWidths = newOrder.Select(i => _tableData.ColumnWidths[i]).ToList();
+            for (int i = 0; i < newWidths.Count; i++) _tableData.ColumnWidths[i] = newWidths[i];
+            foreach (var row in _tableData.Rows)
+            {
+                var newCells = newOrder.Select(i => row.Cells[i]).ToList();
+                row.Cells.Clear();
+                row.Cells.AddRange(newCells);
+            }
+            RebuildGridItems();
+        }
+
         // ── Place ─────────────────────────────────────────────────────────────
         private void PlaceTable()
         {
+            GridSyncRequested?.Invoke(); // View syncs dragged column widths + row heights back
             SyncObservableToModel();
 
             Point3d origin;
@@ -577,7 +645,7 @@ namespace RhinoTable.UI.ViewModels
             var row = MakeRow();
             _tableData.Rows.Insert(_selectedRow, row);
             _tableData.RowHeights.Insert(_selectedRow, 8.0);
-            RebuildGridItems();
+            RebuildGridItems(syncFirst: false);
         }
 
         private void InsertRowBelow()
@@ -587,7 +655,7 @@ namespace RhinoTable.UI.ViewModels
             var row = MakeRow();
             _tableData.Rows.Insert(at, row);
             _tableData.RowHeights.Insert(Math.Min(at, _tableData.RowHeights.Count), 8.0);
-            RebuildGridItems();
+            RebuildGridItems(syncFirst: false);
         }
 
         private void RemoveRow()
@@ -598,7 +666,7 @@ namespace RhinoTable.UI.ViewModels
             if (_selectedRow < _tableData.RowHeights.Count)
                 _tableData.RowHeights.RemoveAt(_selectedRow);
             _selectedRow = -1; _selectedCell = null;
-            RebuildGridItems();
+            RebuildGridItems(syncFirst: false);
         }
 
         private TableRowData MakeRow()
@@ -624,7 +692,7 @@ namespace RhinoTable.UI.ViewModels
             int at = _selectedCol >= 0 ? _selectedCol : 0;
             _tableData.ColumnWidths.Insert(at, 30.0);
             foreach (var r in _tableData.Rows) r.Cells.Insert(at, new TableCellData());
-            RebuildGridItems();
+            RebuildGridItems(syncFirst: false);
         }
 
         private void InsertColRight()
@@ -633,7 +701,7 @@ namespace RhinoTable.UI.ViewModels
             int at = _selectedCol >= 0 ? _selectedCol + 1 : _tableData.ColumnWidths.Count;
             _tableData.ColumnWidths.Insert(at, 30.0);
             foreach (var r in _tableData.Rows) r.Cells.Insert(at, new TableCellData());
-            RebuildGridItems();
+            RebuildGridItems(syncFirst: false);
         }
 
         private void RemoveColumn()
@@ -706,11 +774,118 @@ namespace RhinoTable.UI.ViewModels
 
         private void ToggleHeaderRow()
         {
-            if (_selectedRow < 0 || _selectedRow >= _tableData.Rows.Count) return;
+            if (_selectedRow != 0 || _tableData.Rows.Count == 0) return;
             PushUndoSnapshot();
-            _tableData.Rows[_selectedRow].IsHeader = !_tableData.Rows[_selectedRow].IsHeader;
+            bool newValue = !_tableData.Rows[0].IsHeader;
+            _tableData.Rows[0].IsHeader = newValue;
+            if (newValue)
+            {
+                // Auto-apply bold + thick bottom border to header row
+                foreach (var cell in _tableData.Rows[0].Cells)
+                {
+                    cell.Bold = true;
+                    cell.BorderBottom = 0.5f;
+                }
+            }
             Notify(nameof(IsCurrentRowHeader));
             RebuildGridItems();
+        }
+
+        private void MergeDown()
+        {
+            if (_selectedCells.Count == 0) return;
+            PushUndoSnapshot();
+
+            if (_selectedCells.Count == 1 && _selectedCell != null)
+            {
+                if (_selectedCell.MergeDown > 0)
+                {
+                    for (int r = _selectedRow + 1; r <= _selectedRow + _selectedCell.MergeDown; r++)
+                        if (r < _tableData.Rows.Count && _selectedCol < _tableData.Rows[r].Cells.Count)
+                            _tableData.Rows[r].Cells[_selectedCol].IsMergedHidden = false;
+                    _selectedCell.MergeDown = 0;
+                }
+                else
+                {
+                    int nextRow = _selectedRow + 1;
+                    if (nextRow < _tableData.Rows.Count && _selectedCol < _tableData.Rows[nextRow].Cells.Count)
+                    {
+                        _selectedCell.MergeDown = 1;
+                        _tableData.Rows[nextRow].Cells[_selectedCol].IsMergedHidden = true;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var colGroup in _selectedCellPositions.GroupBy(p => p.Col))
+                {
+                    int col = colGroup.Key;
+                    var rows = colGroup.Select(p => p.Row).OrderBy(r => r).ToList();
+                    int minRow = rows.First(), maxRow = rows.Last();
+
+                    for (int r = minRow; r <= maxRow; r++)
+                    {
+                        if (r >= _tableData.Rows.Count || col >= _tableData.Rows[r].Cells.Count) break;
+                        _tableData.Rows[r].Cells[col].IsMergedHidden = false;
+                        _tableData.Rows[r].Cells[col].MergeDown = 0;
+                    }
+                    _tableData.Rows[minRow].Cells[col].MergeDown = maxRow - minRow;
+                    for (int r = minRow + 1; r <= maxRow; r++)
+                        if (r < _tableData.Rows.Count && col < _tableData.Rows[r].Cells.Count)
+                            _tableData.Rows[r].Cells[col].IsMergedHidden = true;
+                }
+            }
+            GridRefreshRequested?.Invoke();
+        }
+
+        private void MoveRowUp()
+        {
+            if (_selectedRow <= 0) return;
+            PushUndoSnapshot();
+            (_tableData.RowHeights[_selectedRow], _tableData.RowHeights[_selectedRow - 1]) =
+                (_tableData.RowHeights[_selectedRow - 1], _tableData.RowHeights[_selectedRow]);
+            (_tableData.Rows[_selectedRow], _tableData.Rows[_selectedRow - 1]) =
+                (_tableData.Rows[_selectedRow - 1], _tableData.Rows[_selectedRow]);
+            _selectedRow--;
+            RebuildGridItems(syncFirst: false);
+        }
+
+        private void MoveRowDown()
+        {
+            if (_selectedRow < 0 || _selectedRow >= _tableData.Rows.Count - 1) return;
+            PushUndoSnapshot();
+            (_tableData.RowHeights[_selectedRow], _tableData.RowHeights[_selectedRow + 1]) =
+                (_tableData.RowHeights[_selectedRow + 1], _tableData.RowHeights[_selectedRow]);
+            (_tableData.Rows[_selectedRow], _tableData.Rows[_selectedRow + 1]) =
+                (_tableData.Rows[_selectedRow + 1], _tableData.Rows[_selectedRow]);
+            _selectedRow++;
+            RebuildGridItems(syncFirst: false);
+        }
+
+        private void MoveColumnLeft()
+        {
+            if (_selectedCol <= 0) return;
+            PushUndoSnapshot();
+            (_tableData.ColumnWidths[_selectedCol], _tableData.ColumnWidths[_selectedCol - 1]) =
+                (_tableData.ColumnWidths[_selectedCol - 1], _tableData.ColumnWidths[_selectedCol]);
+            foreach (var row in _tableData.Rows)
+                (row.Cells[_selectedCol], row.Cells[_selectedCol - 1]) =
+                    (row.Cells[_selectedCol - 1], row.Cells[_selectedCol]);
+            _selectedCol--;
+            RebuildGridItems(syncFirst: false);
+        }
+
+        private void MoveColumnRight()
+        {
+            if (_selectedCol < 0 || _selectedCol >= _tableData.ColumnWidths.Count - 1) return;
+            PushUndoSnapshot();
+            (_tableData.ColumnWidths[_selectedCol], _tableData.ColumnWidths[_selectedCol + 1]) =
+                (_tableData.ColumnWidths[_selectedCol + 1], _tableData.ColumnWidths[_selectedCol]);
+            foreach (var row in _tableData.Rows)
+                (row.Cells[_selectedCol], row.Cells[_selectedCol + 1]) =
+                    (row.Cells[_selectedCol + 1], row.Cells[_selectedCol]);
+            _selectedCol++;
+            RebuildGridItems(syncFirst: false);
         }
 
         private void ToggleBold()
@@ -758,11 +933,23 @@ namespace RhinoTable.UI.ViewModels
         // ── Undo / Redo ───────────────────────────────────────────────────────
 
         // Bevriest de huidige toestand vóór elke bewerking.
+        private const int MaxUndoSteps = 100;
+
         internal void PushUndoSnapshot()
         {
             if (_suppressUndo) return;
             SyncObservableToModel();
-            _undoStack.Push(_tableData.Serialize());
+            string snapshot = _tableData.Serialize();
+            if (_undoStack.Count > 0 && _undoStack.Peek() == snapshot) return;
+            _undoStack.Push(snapshot);
+            if (_undoStack.Count > MaxUndoSteps)
+            {
+                // Trim the oldest entry (Stack has no Remove, so rebuild without the bottom)
+                var entries = _undoStack.ToArray();
+                _undoStack.Clear();
+                for (int i = entries.Length - 2; i >= 0; i--)
+                    _undoStack.Push(entries[i]);
+            }
             _redoStack.Clear();
             Notify(nameof(CanUndo));
             Notify(nameof(CanRedo));

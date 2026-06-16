@@ -4,7 +4,7 @@
         xmlns:conv="clr-namespace:RhinoTable.UI.Converters"
         x:Name="EditorWindow"
         Title="RhinoTable — Table Editor"
-        Width="1338" Height="690"
+        Width="1327" Height="690"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         Background="#F2F5F8">
@@ -42,29 +42,41 @@
         <Border Grid.Row="0" Background="#1B4F7A" Padding="6,6,6,4">
             <StackPanel Orientation="Horizontal">
 
-                <!-- ── PLAATSEN ──────────────────────────────────────────── -->
+                <!-- ── PLAATSEN + SJABLONEN ─────────────────────────────── -->
                 <Border Style="{StaticResource ToolGroup}" Padding="8,4">
-                    <Button Command="{Binding PlaceTableCommand}"
-                            ToolTip="Place or update table in Rhino (Ctrl+Enter)"
-                            Style="{StaticResource PrimaryButton}"
-                            MinWidth="90" Height="52">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock FontSize="18" FontWeight="Bold" HorizontalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="✓"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEditingExisting}" Value="True">
-                                                <Setter Property="Text" Value="↻"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock Text="{Binding PlaceButtonLabel}"
-                                       FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <StackPanel>
+                        <Button Command="{Binding PlaceTableCommand}"
+                                ToolTip="Place or update table in Rhino (Ctrl+Enter)"
+                                Style="{StaticResource PrimaryButton}"
+                                MinWidth="90" Height="38">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock FontSize="18" FontWeight="Bold" HorizontalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="✓"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditingExisting}" Value="True">
+                                                    <Setter Property="Text" Value="↻"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding PlaceButtonLabel}"
+                                           FontSize="10" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="OpenTemplatesButton"
+                                Click="OpenTemplates_Click"
+                                Style="{StaticResource ToolbarButton}"
+                                Height="22" Margin="0,3,0,0"
+                                ToolTip="Sjablonenmanager — laad ingebouwde layouts of bewaar eigen sjablonen">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="&#x1F4CB;" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text=" Sjablonen" FontSize="9" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Border>
 
                 <Rectangle Style="{StaticResource GroupSep}"/>
@@ -132,12 +144,12 @@
                             <TextBlock Grid.Column="1" Text="Columns" Foreground="#A8C8E8" FontSize="8" HorizontalAlignment="Center"/>
                         </Grid>
 
-                        <!-- Header-rij toggle -->
+                        <!-- Header-rij toggle (alleen rij 1) -->
                         <ToggleButton Margin="0,4,0,0" Height="22" Padding="6,2"
                                       IsChecked="{Binding IsCurrentRowHeader, Mode=OneWay}"
                                       Command="{Binding ToggleHeaderRowCommand}"
                                       Style="{StaticResource DropdownToggleButton}"
-                                      ToolTip="Toggle selected row as header (excluded from row numbering)">
+                                      ToolTip="Make row 1 a header (bold + thick border). Only available on row 1.">
                             <TextBlock Text="H  Header row" FontSize="10"/>
                         </ToggleButton>
                     </StackPanel>
@@ -320,11 +332,22 @@
 
                             <!-- Rij 2: samenvoegen -->
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                <Button Content="⊞ Merge"
+                                <Button Content="⊞→ Merge"
                                         Command="{Binding MergeCellsCommand}"
-                                        ToolTip="Merge cell with adjacent right cell"
+                                        ToolTip="Merge selected cells horizontally (click again to unmerge)"
+                                        Style="{StaticResource ToolbarButton}" Padding="5,3" Margin="0,0,2,0"/>
+                                <Button Content="⊞↓ Merge"
+                                        Command="{Binding MergeDownCommand}"
+                                        ToolTip="Merge selected cells vertically (click again to unmerge)"
                                         Style="{StaticResource ToolbarButton}" Padding="5,3"/>
                             </StackPanel>
+                            <Button Content="↔  Auto-width"
+                                    Command="{Binding AutoWidthCommand}"
+                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                    Padding="5,3"
+                                    ToolTip="Fit column widths to content" Width="122" HorizontalAlignment="Left" Click="Button_Click"/>
+
+                            <!-- Rij 3: auto-width -->
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -763,18 +786,13 @@
                     </Border.RenderTransform>
                     <StackPanel>
                         <TextBlock Text="UTILITIES" Style="{StaticResource GroupLabel}"/>
-                        <StackPanel Orientation="Vertical" Width="117">
-                            <Button Content="1,2,3  Auto-number"
-                                    Command="{Binding AutoNumberCommand}"
-                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" ToolTip="Fill first column with row numbers (skips header rows)" Width="116"/>
-                            <Button Content="↔  Auto-width"
-                                    Command="{Binding AutoWidthCommand}"
-                                    Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" ToolTip="Fit column widths to content" HorizontalAlignment="Left"/>
-                        </StackPanel>
+                        <Button Content="1,2,3  Auto-number"
+                                Command="{Binding AutoNumberCommand}"
+                                Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
+                                Padding="6,4" ToolTip="Fill first column with row numbers (skips header rows)"/>
                     </StackPanel>
                 </Border>
+
 
             </StackPanel>
         </Border>
@@ -810,7 +828,9 @@
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   CanUserSortColumns="False"
-                  CanUserReorderColumns="False"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserResizeRows="True"
                   AutoGenerateColumns="False"
                   SelectionUnit="Cell"
                   SelectionMode="Extended"
@@ -822,7 +842,8 @@
                   VerticalGridLinesBrush="#D8DDE3"
                   SelectedCellsChanged="TableGrid_SelectedCellsChanged"
                   CellEditEnding="TableGrid_CellEditEnding"
-                  PreviewKeyDown="TableGrid_PreviewKeyDown"/>
+                  PreviewKeyDown="TableGrid_PreviewKeyDown"
+                  ColumnReordered="TableGrid_ColumnReordered"/>
 
         <!-- ══════════════════════════════════════════════════════════════════
              Statusbalk

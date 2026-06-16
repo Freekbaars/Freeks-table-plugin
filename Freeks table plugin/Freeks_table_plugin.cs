@@ -4,7 +4,10 @@ using Rhino.PlugIns;
 using RhinoTable.Core.Import;
 using RhinoTable.Core.Layout;
 using RhinoTable.Core.Models;
+using RhinoTable.Core.Settings;
+using RhinoTable.UI.Views;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 
 namespace Freeks_table_plugin
@@ -36,8 +39,28 @@ namespace Freeks_table_plugin
             if (RhinoDoc.ActiveDoc != null)
                 ScanAndWatch(RhinoDoc.ActiveDoc);
 
+            _ = CheckForUpdateAsync();
+
             RhinoApp.WriteLine("RhinoTable geladen. Gebruik: TableCreate, TableEdit, TableSync");
             return LoadReturnCode.Success;
+        }
+
+        private static async System.Threading.Tasks.Task CheckForUpdateAsync()
+        {
+            // Wacht kort zodat Rhino volledig geladen is voordat we een popup tonen
+            await System.Threading.Tasks.Task.Delay(3000);
+
+            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
+            var (hasUpdate, latestVersion) = await UpdateChecker.CheckAsync(currentVersion);
+
+            if (!hasUpdate) return;
+
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                var dlg = new UpdateNotificationWindow(
+                    currentVersion.ToString(3), latestVersion);
+                dlg.Show();
+            });
         }
 
         // ── Watcher beheer ────────────────────────────────────────────────────
