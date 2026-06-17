@@ -361,3 +361,39 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ── RhinoTable: persoonlijke / interne bestanden ─────────────────────────────
+
+# Persoonlijke sessie-/planningsdocumenten (interne dev-notities)
+STATUS.md
+PLAN.md
+TODO.md
+NOTES.md
+*_PRIVAAT.*
+*_private.*
+
+# Lokale ontwikkelinstellingen die pad- of machinespecifieke info kunnen bevatten
+# (launchSettings.json en .vscode/ zijn al committed als nuttige dev-helpers,
+#  maar toekomstige varianten worden hier geblokkeerd)
+**/Properties/launchSettings.local.json
+.vscode/settings.json
+
+# Gecompileerde distribution-artefacten: gebruik GitHub Releases in plaats van git
+# De huidige yak-dist/ bestanden zijn al committed; nieuwe .yak-pakketten niet meer toevoegen
+*.yak
+
+# Veelvoorkomende gevoelige bestandspatronen (voor zekerheid)
+.env
+.env.*
+*.env
+secrets.*
+appsettings.*.json
+*.pfx
+*.p12
+*.key
+*.pem
+
+# macOS / Windows systeem-rommel
+.DS_Store
+Thumbs.db
+desktop.ini

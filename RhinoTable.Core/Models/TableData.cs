@@ -13,6 +13,8 @@ namespace RhinoTable.Core.Models
         public Guid? SourceObjectId { get; set; }
         // Pad naar het gekoppelde Excel-bestand; null = geen koppeling
         public string? LinkedExcelPath { get; set; }
+        // Naam van het geselecteerde werkblad; null = eerste werkblad
+        public string? LinkedExcelSheet { get; set; }
         // Naam van het Rhino-blok; null = automatisch gegenereerde naam
         public string? TableName { get; set; }
 

@@ -44,13 +44,13 @@ namespace Freeks_table_plugin.Commands
 
                 RhinoApp.WriteLine($"  → Vernieuwen: {idef.Name}  ←  {Path.GetFileName(path)}");
 
-                // Importeer vers Excel-bestand
+                // Importeer vers Excel-bestand (gebruik opgeslagen werkbladnaam)
                 TableData fresh;
-                try   { fresh = new ExcelImporter().Import(path); }
+                try   { fresh = new ExcelImporter().Import(path, tableData.LinkedExcelSheet); }
                 catch (Exception ex) { RhinoApp.WriteLine($"     Fout: {ex.Message}"); skipped++; continue; }
 
-                // Bewaar de koppeling en het bronobject-ID in de nieuwe data
-                fresh.LinkedExcelPath = path;
+                fresh.LinkedExcelPath  = path;
+                fresh.LinkedExcelSheet = tableData.LinkedExcelSheet;
 
                 // Pas alle instanties bij via de definitie-index
                 var (geoms, attrs) = drawer.BuildGeometry(fresh);

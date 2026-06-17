@@ -391,7 +391,7 @@ namespace RhinoTable.Core.Layout
         // Gemiddelde tekenbreedte ≈ fontSize × 0.55 mm voor een standaard schreefloos font.
         private static string WrapText(string text, double fontSize, double widthMm)
         {
-            int charsPerLine = Math.Max(1, (int)(widthMm / (fontSize * 0.55)));
+            int charsPerLine = Math.Max(1, (int)(widthMm / (fontSize * 0.60)));
             var words  = text.Split(' ');
             var sb     = new System.Text.StringBuilder();
             int lineLen = 0;

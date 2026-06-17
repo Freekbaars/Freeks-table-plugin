@@ -119,14 +119,12 @@ namespace Freeks_table_plugin
         {
             if (!File.Exists(path)) return;
 
-            TableData fresh;
-            try   { fresh = new ExcelImporter().Import(path); }
-            catch { return; }
-            fresh.LinkedExcelPath = path;
+            var drawer = new RhinoTableDrawer();
+            int synced = 0;
 
-            var drawer  = new RhinoTableDrawer();
-            var (geoms, attrs) = drawer.BuildGeometry(fresh);
-            int synced  = 0;
+            // Importeer per uniek werkblad zodat tabellen met verschillende werkbladen
+            // elk de juiste data krijgen.
+            var importCache = new Dictionary<string, TableData?>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var idef in doc.InstanceDefinitions)
             {
@@ -136,6 +134,19 @@ namespace Freeks_table_plugin
                     !string.Equals(td.LinkedExcelPath, path, StringComparison.OrdinalIgnoreCase))
                     continue;
 
+                string cacheKey = td.LinkedExcelSheet ?? string.Empty;
+                if (!importCache.TryGetValue(cacheKey, out var fresh))
+                {
+                    try   { fresh = new ExcelImporter().Import(path, td.LinkedExcelSheet); }
+                    catch { fresh = null; }
+                    importCache[cacheKey] = fresh;
+                }
+                if (fresh == null) continue;
+
+                fresh.LinkedExcelPath  = path;
+                fresh.LinkedExcelSheet = td.LinkedExcelSheet;
+
+                var (geoms, attrs) = drawer.BuildGeometry(fresh);
                 doc.InstanceDefinitions.ModifyGeometry(idef.Index, geoms, attrs);
                 doc.InstanceDefinitions.Modify(idef, idef.Name, fresh.Serialize(), true);
                 synced++;

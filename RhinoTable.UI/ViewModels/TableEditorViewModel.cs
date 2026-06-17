@@ -614,18 +614,34 @@ namespace RhinoTable.UI.ViewModels
                 StatusText = "Linked file not found.";
                 return;
             }
-            await DoImportExcel(path, storeLink: true);
+            // Gebruik het opgeslagen werkblad zodat er geen dialog verschijnt bij refresh
+            await DoImportExcel(path, storeLink: true, knownSheet: _tableData.LinkedExcelSheet);
         }
 
-        private async Task DoImportExcel(string path, bool storeLink)
+        private async Task DoImportExcel(string path, bool storeLink, string? knownSheet = null)
         {
+            // Werkbladnamen ophalen om te bepalen of er een keuze nodig is
+            List<string> sheets = await Task.Run(() => ExcelImporter.GetSheetNames(path));
+
+            string? sheetName = knownSheet;
+            if (sheetName == null && sheets.Count > 1)
+            {
+                var dlg = new RhinoTable.UI.Views.SheetSelectionDialog(sheets);
+                if (dlg.ShowDialog() != true) return;
+                sheetName = dlg.SelectedSheet;
+            }
+
             ImportStarted?.Invoke(System.IO.Path.GetFileName(path), ExcelImporter.MaxRows);
 
             var progress = new Progress<int>(n => ImportProgress?.Invoke(n));
-            TableData result = await Task.Run(() => new ExcelImporter().Import(path, progress));
+            TableData result = await Task.Run(() => new ExcelImporter().Import(path, sheetName, progress));
 
-            if (storeLink) result.LinkedExcelPath = path;
-            result.SourceObjectId = _tableData.SourceObjectId; // bewaar bestaande koppeling
+            if (storeLink)
+            {
+                result.LinkedExcelPath  = path;
+                result.LinkedExcelSheet = sheetName;
+            }
+            result.SourceObjectId = _tableData.SourceObjectId;
 
             _tableData = result;
             RebuildGridItems(syncFirst: false);
