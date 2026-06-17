@@ -25,7 +25,7 @@ namespace RhinoTable.Core.Layout
                     double fontSize   = cell.FontSize ?? defaultSize;
                     // 0.60 * fontSize is iets ruimer dan de WrapText factor (0.55)
                     // zodat er altijd ademruimte overblijft na het wikkelen.
-                    double baseChar   = fontSize * 0.60;
+                    double baseChar   = fontSize * 1;
                     double boldFactor = cell.Bold ? 1.15 : 1.0;
 
                     foreach (var line in cell.Text.Split('\n'))
