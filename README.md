@@ -138,4 +138,4 @@ Freeks table plugin.sln
 
 ## License
 
-MIT — see [LICENSE.txt](LICENSE.txt)
+GPL-3.0 license
