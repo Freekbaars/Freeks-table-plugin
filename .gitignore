@@ -397,3 +397,16 @@ appsettings.*.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ── RhinoTable: ontwerp-bronbestanden (niet nodig voor bouwen) ────────────────
+
+# Illustrator bronbestanden en scripts
+*.ai
+*.jsx
+RhinoTable.UI/Resources/MaakIconArtboards*.jsx
+
+# SVG-bronbestanden (icoontjes zijn al embedded in de DLL als PNG)
+RhinoTable.UI/Resources/Icons/SVG/
+
+# Icoonlijst (intern overzichtsdocument)
+RhinoTable.UI/Resources/Icons/ICONENLIJST.txt

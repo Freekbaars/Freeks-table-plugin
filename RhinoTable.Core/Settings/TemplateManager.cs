@@ -68,7 +68,10 @@ namespace RhinoTable.Core.Settings
         {
             CreateTitelblok(),
             CreateBom(),
-            CreateRevisietabel()
+            CreateRevisietabel(),
+            CreateRoomSchedule(),
+            CreateMaterialLegend(),
+            CreateCoordinateTable()
         };
 
         private static TableTemplate CreateTitelblok()
@@ -229,6 +232,306 @@ namespace RhinoTable.Core.Settings
             {
                 Name        = "Revision Table",
                 Description = "Revision table for drawings with revision letter, description, date, and initials.",
+                IsBuiltIn   = true,
+                TableData   = td
+            };
+        }
+
+        private static TableTemplate CreateRoomSchedule()
+        {
+            // 7 columns: No. | Room Name | Area | Floor | Wall | Ceiling | Remarks
+            var td = new TableData
+            {
+                DefaultFontName = "Arial",
+                DefaultFontSize = 3.0,
+                ColumnWidths    = new List<double> { 12, 42, 20, 30, 30, 30, 36 },
+                RowHeights      = Enumerable.Repeat(8.0, 9).ToList()
+            };
+            td.RowHeights[0] = 11.0;
+
+            // Row 0: merged title spanning all 7 columns
+            var titleRow = new TableRowData();
+            titleRow.Cells.Add(new TableCellData
+            {
+                Text                = "ROOM SCHEDULE",
+                Bold                = true,
+                FontSize            = 5.0,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment   = VerticalAlignment.Middle,
+                BackgroundColor     = "#1A3A5C",
+                TextColor           = "#FFFFFF",
+                MergeRight          = 6,
+                BorderTop           = 0.5f,
+                BorderBottom        = 0.5f,
+                BorderLeft          = 0.5f,
+                BorderRight         = 0.5f
+            });
+            for (int c = 1; c < 7; c++)
+                titleRow.Cells.Add(new TableCellData { IsMergedHidden = true });
+            td.Rows.Add(titleRow);
+
+            // Row 1: column headers — "Area (m^{2})" uses superscript syntax
+            string[] colHeaders = { "No.", "Room Name", "Area (m^{2})", "Floor Finish", "Wall Finish", "Ceiling Finish", "Remarks" };
+            var hrow = new TableRowData { IsHeader = true };
+            foreach (var h in colHeaders)
+                hrow.Cells.Add(new TableCellData
+                {
+                    Text                = h,
+                    Bold                = true,
+                    FontSize            = 3.5,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    BackgroundColor     = "#2471A3",
+                    TextColor           = "#FFFFFF",
+                    BorderTop           = 0.25f,
+                    BorderBottom        = 0.5f,
+                    BorderLeft          = 0.25f,
+                    BorderRight         = 0.25f
+                });
+            td.Rows.Add(hrow);
+
+            // 7 data rows
+            string[][] data =
+            {
+                new[] { "1.01", "Reception",    "42.5",  "Granite tiles", "Paint",       "Plaster",    ""               },
+                new[] { "1.02", "Office",        "28.0",  "Carpet",        "Paint",       "T-ceiling",  ""               },
+                new[] { "1.03", "Meeting Room",  "35.8",  "Parquet",       "Plaster",     "T-ceiling",  "AV equipment"   },
+                new[] { "1.04", "Pantry",        "12.0",  "Tiles",         "Tiles",       "Plaster",    ""               },
+                new[] { "1.05", "Toilet",        "8.5",   "Tiles",         "Tiles",       "Plaster",    ""               },
+                new[] { "1.06", "Storage",       "6.0",   "Concrete",      "Paint",       "Open",       "Shelving unit"  },
+                new[] { "2.01", "Open Office",   "120.0", "Raised floor",  "Glazing",     "T-ceiling",  "Open floor plan"},
+            };
+
+            for (int r = 0; r < data.Length; r++)
+            {
+                var row = new TableRowData();
+                string? altBg = r % 2 == 1 ? "#EBF5FB" : null;
+                for (int c = 0; c < 7; c++)
+                    row.Cells.Add(new TableCellData
+                    {
+                        Text                = data[r][c],
+                        HorizontalAlignment = (c == 0 || c == 2) ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+                        BackgroundColor     = altBg,
+                        BorderBottom        = 0.25f,
+                        BorderLeft          = 0.25f,
+                        BorderRight         = 0.25f
+                    });
+                td.Rows.Add(row);
+            }
+
+            return new TableTemplate
+            {
+                Name        = "Room Schedule",
+                Description = "Architectural room schedule with area (m²), floor/wall/ceiling finishes. Showcases merged title row, superscript, and alternating row colours.",
+                IsBuiltIn   = true,
+                TableData   = td
+            };
+        }
+
+        private static TableTemplate CreateMaterialLegend()
+        {
+            // 4 columns: Pattern | Material | Reference | Description
+            var td = new TableData
+            {
+                DefaultFontName = "Arial",
+                DefaultFontSize = 3.0,
+                ColumnWidths    = new List<double> { 22, 38, 32, 68 },
+                RowHeights      = new List<double>  { 11, 8, 11, 11, 11, 11, 11 }
+            };
+
+            // Row 0: merged title spanning all 4 columns
+            var titleRow = new TableRowData();
+            titleRow.Cells.Add(new TableCellData
+            {
+                Text                = "MATERIAL LEGEND",
+                Bold                = true,
+                FontSize            = 5.0,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment   = VerticalAlignment.Middle,
+                BackgroundColor     = "#1A5C3A",
+                TextColor           = "#FFFFFF",
+                MergeRight          = 3,
+                BorderTop           = 0.5f,
+                BorderBottom        = 0.5f,
+                BorderLeft          = 0.5f,
+                BorderRight         = 0.5f
+            });
+            for (int c = 1; c < 4; c++)
+                titleRow.Cells.Add(new TableCellData { IsMergedHidden = true });
+            td.Rows.Add(titleRow);
+
+            // Row 1: column headers
+            string[] colHeaders = { "Pattern", "Material", "Reference", "Description" };
+            var hrow = new TableRowData { IsHeader = true };
+            foreach (var h in colHeaders)
+                hrow.Cells.Add(new TableCellData
+                {
+                    Text                = h,
+                    Bold                = true,
+                    FontSize            = 3.5,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    BackgroundColor     = "#1E8449",
+                    TextColor           = "#FFFFFF",
+                    BorderTop           = 0.25f,
+                    BorderBottom        = 0.5f,
+                    BorderLeft          = 0.25f,
+                    BorderRight         = 0.25f
+                });
+            td.Rows.Add(hrow);
+
+            // Material rows: (hatchName, hatchColor, solidBg, material, reference, description)
+            var materials = new (string? Hatch, string? HColor, string? Bg, string Mat, string Ref, string Desc)[]
+            {
+                ("Hatch1", "#4A4A4A", null,      "Concrete",    "NEN-EN 206",      "Reinforced concrete structural elements and foundations"),
+                ("Hatch2", "#8B4513", null,      "Masonry",     "NEN-EN 1996",     "Load-bearing clay brick or concrete block masonry"),
+                ("Hatch3", "#2C2C2C", null,      "Steel",       "NEN-EN 1993",     "Structural steel sections, plates and connections"),
+                (null,     null,      "#D5F5E3", "Insulation",  "NEN-EN ISO 6946", "Thermal and acoustic insulation (rock wool / PIR)"),
+                (null,     null,      "#FEF9E7", "Timber",      "NEN-EN 1995",     "Structural timber and engineered wood products (CLT / LVL)"),
+            };
+
+            foreach (var m in materials)
+            {
+                var row = new TableRowData();
+
+                // Pattern cell — hatch fill or solid colour
+                row.Cells.Add(new TableCellData
+                {
+                    HatchPatternName = m.Hatch,
+                    HatchColor       = m.HColor,
+                    HatchScale       = 1.0,
+                    BackgroundColor  = m.Bg,
+                    BorderBottom     = 0.25f,
+                    BorderLeft       = 0.25f,
+                    BorderRight      = 0.25f
+                });
+                // Material name — bold
+                row.Cells.Add(new TableCellData
+                {
+                    Text            = m.Mat,
+                    Bold            = true,
+                    BackgroundColor = m.Bg,
+                    BorderBottom    = 0.25f,
+                    BorderLeft      = 0.25f,
+                    BorderRight     = 0.25f
+                });
+                // Reference — italic, centered
+                row.Cells.Add(new TableCellData
+                {
+                    Text                = m.Ref,
+                    Italic              = true,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    BackgroundColor     = m.Bg,
+                    BorderBottom        = 0.25f,
+                    BorderLeft          = 0.25f,
+                    BorderRight         = 0.25f
+                });
+                // Description — word wrap
+                row.Cells.Add(new TableCellData
+                {
+                    Text            = m.Desc,
+                    WordWrap        = true,
+                    BackgroundColor = m.Bg,
+                    BorderBottom    = 0.25f,
+                    BorderLeft      = 0.25f,
+                    BorderRight     = 0.25f
+                });
+                td.Rows.Add(row);
+            }
+
+            return new TableTemplate
+            {
+                Name        = "Material Legend",
+                Description = "Material legend with Rhino hatch patterns for concrete, masonry, and steel, plus solid colour fills for insulation and timber. Showcases hatch fills, merged title, and word wrap.",
+                IsBuiltIn   = true,
+                TableData   = td
+            };
+        }
+
+        private static TableTemplate CreateCoordinateTable()
+        {
+            // 5 columns: Point | X (m) | Y (m) | Z (m) | Description
+            var td = new TableData
+            {
+                DefaultFontName = "Arial",
+                DefaultFontSize = 3.0,
+                ColumnWidths    = new List<double> { 15, 28, 28, 22, 57 },
+                RowHeights      = Enumerable.Repeat(8.0, 10).ToList()
+            };
+            td.RowHeights[0] = 11.0;
+
+            // Row 0: merged title spanning all 5 columns
+            var titleRow = new TableRowData();
+            titleRow.Cells.Add(new TableCellData
+            {
+                Text                = "SETTING-OUT COORDINATES",
+                Bold                = true,
+                FontSize            = 5.0,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment   = VerticalAlignment.Middle,
+                BackgroundColor     = "#4A235A",
+                TextColor           = "#FFFFFF",
+                MergeRight          = 4,
+                BorderTop           = 0.5f,
+                BorderBottom        = 0.5f,
+                BorderLeft          = 0.5f,
+                BorderRight         = 0.5f
+            });
+            for (int c = 1; c < 5; c++)
+                titleRow.Cells.Add(new TableCellData { IsMergedHidden = true });
+            td.Rows.Add(titleRow);
+
+            // Row 1: column headers
+            string[] colHeaders = { "Point", "X (m)", "Y (m)", "Z (m)", "Description" };
+            var hrow = new TableRowData { IsHeader = true };
+            foreach (var h in colHeaders)
+                hrow.Cells.Add(new TableCellData
+                {
+                    Text                = h,
+                    Bold                = true,
+                    FontSize            = 3.5,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    BackgroundColor     = "#7D3C98",
+                    TextColor           = "#FFFFFF",
+                    BorderTop           = 0.25f,
+                    BorderBottom        = 0.5f,
+                    BorderLeft          = 0.25f,
+                    BorderRight         = 0.25f
+                });
+            td.Rows.Add(hrow);
+
+            // 8 data rows with survey coordinates
+            string[][] points =
+            {
+                new[] { "A1", "0.000",    "0.000",   "±0.000",  "Origin / benchmark"         },
+                new[] { "A2", "12.500",   "0.000",   "±0.000",  "Column grid A-2"            },
+                new[] { "A3", "25.000",   "0.000",   "±0.000",  "Column grid A-3"            },
+                new[] { "B1", "0.000",    "8.400",   "±0.000",  "Column grid B-1"            },
+                new[] { "B2", "12.500",   "8.400",   "±0.000",  "Column grid B-2 (centre)"   },
+                new[] { "B3", "25.000",   "8.400",   "±0.000",  "Column grid B-3"            },
+                new[] { "C1", "0.000",    "16.800",  "±0.000",  "Column grid C-1"            },
+                new[] { "C2", "12.500",   "16.800",  "+3.600",  "Top of slab — level 1"      },
+            };
+
+            for (int r = 0; r < points.Length; r++)
+            {
+                var row = new TableRowData();
+                string? altBg = r % 2 == 1 ? "#F4ECF7" : null;
+                for (int c = 0; c < 5; c++)
+                    row.Cells.Add(new TableCellData
+                    {
+                        Text                = points[r][c],
+                        HorizontalAlignment = c < 4 ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+                        BackgroundColor     = altBg,
+                        BorderBottom        = 0.25f,
+                        BorderLeft          = 0.25f,
+                        BorderRight         = 0.25f
+                    });
+                td.Rows.Add(row);
+            }
+
+            return new TableTemplate
+            {
+                Name        = "Setting-Out Coordinates",
+                Description = "Survey / setting-out coordinate table with X, Y, Z values and point descriptions. Showcases merged title, centred numeric data, and alternating row colours.",
                 IsBuiltIn   = true,
                 TableData   = td
             };

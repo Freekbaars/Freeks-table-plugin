@@ -388,24 +388,32 @@ namespace RhinoTable.Core.Layout
         }
 
         // Schat regelafbrekingen voor Rhino-uitvoer (geen native wrap-API beschikbaar).
-        // Gemiddelde tekenbreedte ≈ fontSize × 0.55 mm voor een standaard schreefloos font.
+        // Gemiddelde tekenbreedte ≈ fontSize × 0.60 mm voor een standaard schreefloos font.
+        // %<...>% Rhino text fields worden als één ondeelbaar token beschouwd.
         private static string WrapText(string text, double fontSize, double widthMm)
         {
             int charsPerLine = Math.Max(1, (int)(widthMm / (fontSize * 0.60)));
-            var words = text.Split(' ');
-            var sb    = new System.Text.StringBuilder();
+
+            // Splits op spaties maar houd %<...>% intact als één token.
+            var tokens = TokeniseWithFields(text);
+            var sb     = new System.Text.StringBuilder();
             int lineLen = 0;
-            foreach (var word in words)
+
+            foreach (var token in tokens)
             {
-                if (lineLen > 0 && lineLen + 1 + word.Length > charsPerLine)
+                if (token == "\n") { sb.Append('\n'); lineLen = 0; continue; }
+
+                if (lineLen > 0 && lineLen + 1 + token.Length > charsPerLine)
                 { sb.Append('\n'); lineLen = 0; }
                 else if (lineLen > 0)
                 { sb.Append(' '); lineLen++; }
 
-                // Forceer afbreking bij woorden langer dan een hele regel (bijv. onderdeel-nummers, URLs)
-                if (word.Length > charsPerLine)
+                // Forceer afbreking bij gewone tokens langer dan een hele regel
+                // (bijv. onderdeel-nummers, URLs — maar nooit %<...>% fields)
+                bool isField = token.StartsWith("%<") && token.EndsWith(">%");
+                if (!isField && token.Length > charsPerLine)
                 {
-                    var remaining = word;
+                    var remaining = token;
                     while (remaining.Length > 0)
                     {
                         int take = Math.Min(charsPerLine - lineLen, remaining.Length);
@@ -417,11 +425,58 @@ namespace RhinoTable.Core.Layout
                 }
                 else
                 {
-                    sb.Append(word);
-                    lineLen += word.Length;
+                    sb.Append(token);
+                    lineLen += token.Length;
                 }
             }
             return sb.ToString();
+        }
+
+        // Splits tekst op spaties/newlines maar behandelt %<...>% als atomair token.
+        private static List<string> TokeniseWithFields(string text)
+        {
+            var result = new List<string>();
+            int i = 0;
+            var cur = new System.Text.StringBuilder();
+
+            void Flush() { if (cur.Length > 0) { result.Add(cur.ToString()); cur.Clear(); } }
+
+            while (i < text.Length)
+            {
+                if (text[i] == '\n')
+                {
+                    Flush();
+                    result.Add("\n");
+                    i++;
+                }
+                else if (text[i] == ' ')
+                {
+                    Flush();
+                    i++;
+                }
+                else if (i + 1 < text.Length && text[i] == '%' && text[i + 1] == '<')
+                {
+                    // Start van een field expression — zoek sluitende >%
+                    Flush();
+                    int end = text.IndexOf(">%", i + 2, StringComparison.Ordinal);
+                    if (end >= 0)
+                    {
+                        result.Add(text.Substring(i, end - i + 2));
+                        i = end + 2;
+                    }
+                    else
+                    {
+                        // Geen sluitend >% gevonden — behandel als gewone tekst
+                        cur.Append(text[i++]);
+                    }
+                }
+                else
+                {
+                    cur.Append(text[i++]);
+                }
+            }
+            Flush();
+            return result;
         }
 
         private static TextJustification GetJustification(HorizontalAlignment h, VerticalAlignment v)

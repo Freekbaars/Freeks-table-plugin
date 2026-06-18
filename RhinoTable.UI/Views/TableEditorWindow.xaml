@@ -1145,6 +1145,60 @@
                                 <TextBlock Text=" Auto-number" FontSize="10" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+
+                        <!-- Bijzondere tekens dropdown -->
+                        <ToggleButton x:Name="SpecialCharToggle"
+                                      Style="{StaticResource DropdownToggleButton}"
+                                      Focusable="False"
+                                      Padding="6,3" Height="26"
+                                      HorizontalContentAlignment="Left"
+                                      ToolTip="Insert a special character at the cursor position">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Ω" FontFamily="Segoe UI Symbol" FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock Text=" Special ▼" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        <Popup x:Name="SpecialCharPopup"
+                               PlacementTarget="{Binding ElementName=SpecialCharToggle}"
+                               Placement="Bottom"
+                               IsOpen="{Binding IsChecked, ElementName=SpecialCharToggle, Mode=TwoWay}"
+                               StaysOpen="False"
+                               Opened="SpecialCharPopup_Opened">
+                            <Border Background="#163F60" Padding="8" CornerRadius="4"
+                                    BorderBrush="#3A7AB0" BorderThickness="1">
+                                <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel x:Name="SpecialCharPanel"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+
+                        <!-- Rhino text fields dropdown -->
+                        <ToggleButton x:Name="FieldsToggle"
+                                      Style="{StaticResource DropdownToggleButton}"
+                                      Focusable="False"
+                                      Padding="6,3" Height="26"
+                                      HorizontalContentAlignment="Left"
+                                      ToolTip="Insert a Rhino text field at the cursor position">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⊞" FontFamily="Segoe UI Symbol" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text=" Fields ▼" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        <Popup x:Name="FieldsPopup"
+                               PlacementTarget="{Binding ElementName=FieldsToggle}"
+                               Placement="Bottom"
+                               IsOpen="{Binding IsChecked, ElementName=FieldsToggle, Mode=TwoWay}"
+                               StaysOpen="False"
+                               Opened="FieldsPopup_Opened">
+                            <Border Background="#163F60" Padding="8" CornerRadius="4"
+                                    BorderBrush="#3A7AB0" BorderThickness="1" MinWidth="280">
+                                <ScrollViewer MaxHeight="480" VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel x:Name="FieldsPanel"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
                     </StackPanel>
                 </Border>
 

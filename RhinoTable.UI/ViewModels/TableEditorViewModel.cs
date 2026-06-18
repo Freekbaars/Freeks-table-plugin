@@ -141,6 +141,9 @@ namespace RhinoTable.UI.ViewModels
         // Grid-grootte synchronisatie (view → model vóór Place)
         public event Action? GridSyncRequested;
 
+        // Rijhoogte gewijzigd via invoerveld — herlaadt alleen rij-hoogtes, geen volledige rebuild
+        public event Action? RowHeightChanged;
+
         // ── Bound properties ──────────────────────────────────────────────────
         public string StatusText
         {
@@ -205,7 +208,7 @@ namespace RhinoTable.UI.ViewModels
             set
             {
                 if (_selectedRow >= 0 && _selectedRow < _tableData.RowHeights.Count && value > 0)
-                { _tableData.RowHeights[_selectedRow] = value; ColumnsChanged?.Invoke(); UpdateStatus(); }
+                { _tableData.RowHeights[_selectedRow] = value; RowHeightChanged?.Invoke(); UpdateStatus(); }
             }
         }
 

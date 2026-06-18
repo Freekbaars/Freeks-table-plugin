@@ -127,6 +127,76 @@
         </Setter>
     </Style>
 
+    <!-- Bijzonder-teken knop in de speciale tekens popup -->
+    <Style x:Key="SpecialCharBtn" TargetType="Button">
+        <Setter Property="Width"           Value="28"/>
+        <Setter Property="Height"          Value="28"/>
+        <Setter Property="Padding"         Value="0"/>
+        <Setter Property="Margin"          Value="1"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="#2A5A8A"/>
+        <Setter Property="Background"      Value="#1A4A73"/>
+        <Setter Property="Foreground"      Value="White"/>
+        <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="FontFamily"      Value="Segoe UI Symbol"/>
+        <Setter Property="Cursor"          Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background"  Value="#2471A3"/>
+                            <Setter Property="BorderBrush" Value="#5BA3D9"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#1A5F8A"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Field-knop in de text-fields popup (volledige breedte, linksuitgelijnd) -->
+    <Style x:Key="FieldItemBtn" TargetType="Button">
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding"         Value="6,4"/>
+        <Setter Property="Margin"          Value="0,1"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="#2A5A8A"/>
+        <Setter Property="Background"      Value="#1A4A73"/>
+        <Setter Property="Foreground"      Value="White"/>
+        <Setter Property="FontSize"        Value="11"/>
+        <Setter Property="Cursor"          Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background"  Value="#2471A3"/>
+                            <Setter Property="BorderBrush" Value="#5BA3D9"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#1A5F8A"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Kleine kleurvlak-knop (16×16) voor kleurpalet -->
     <Style x:Key="SwatchButton" TargetType="Button">
         <Setter Property="Width"           Value="17"/>
