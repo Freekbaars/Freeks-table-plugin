@@ -2,14 +2,53 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="RhinoTable — Templates"
-        Width="680" Height="460"
+        Width="700" Height="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
         Background="#F2F5F8">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+
+        <Style x:Key="FilterTab" TargetType="RadioButton">
+            <Setter Property="Foreground"       Value="#4A7FA8"/>
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="BorderThickness"  Value="0,0,0,2"/>
+            <Setter Property="BorderBrush"      Value="Transparent"/>
+            <Setter Property="Padding"          Value="12,5"/>
+            <Setter Property="Margin"           Value="0,0,2,0"/>
+            <Setter Property="FontSize"         Value="11"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="GroupName"        Value="Filter"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#1B4F7A"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="BorderBrush" Value="#1B4F7A"/>
+                                <Setter Property="Foreground"  Value="#1B4F7A"/>
+                                <Setter Property="FontWeight"  Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>   <!-- Koptekst -->
+            <RowDefinition Height="Auto"/>   <!-- Filter tabs -->
             <RowDefinition Height="*"/>      <!-- Inhoud -->
             <RowDefinition Height="Auto"/>   <!-- Knoppen -->
         </Grid.RowDefinitions>
@@ -22,16 +61,39 @@
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Table Templates" Foreground="White"
                                FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="Load a built-in template or save your own table layout"
+                    <TextBlock Text="Load a template or save the current table as a custom template"
                                Foreground="#8AB4D0" FontSize="10"/>
                 </StackPanel>
             </StackPanel>
         </Border>
 
+        <!-- ── Filter tabs ── -->
+        <Border Grid.Row="1" Background="White"
+                BorderBrush="#D0D8E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="6,0">
+                <RadioButton x:Name="FilterAll"
+                             Content="All" IsChecked="True"
+                             Style="{StaticResource FilterTab}"
+                             Checked="Filter_Checked"/>
+                <RadioButton x:Name="FilterBuiltIn"
+                             Content="Built-in"
+                             Style="{StaticResource FilterTab}"
+                             Checked="Filter_Checked"/>
+                <RadioButton x:Name="FilterDynamic"
+                             Content="Dynamic"
+                             Style="{StaticResource FilterTab}"
+                             Checked="Filter_Checked"/>
+                <RadioButton x:Name="FilterCustom"
+                             Content="Custom"
+                             Style="{StaticResource FilterTab}"
+                             Checked="Filter_Checked"/>
+            </StackPanel>
+        </Border>
+
         <!-- ── Inhoud: lijst + details ── -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" MinWidth="160"/>
+                <ColumnDefinition Width="230" MinWidth="160"/>
                 <ColumnDefinition Width="5"/>      <!-- Splitter -->
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -39,58 +101,52 @@
             <!-- Lijst -->
             <Border Grid.Column="0" Background="White"
                     BorderBrush="#D0D8E0" BorderThickness="0,0,0,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top"
-                               Text="TEMPLATES" Foreground="#1B4F7A"
-                               FontSize="9" FontWeight="Bold"
-                               Padding="10,8,8,4" Background="#EEF3F8"/>
-                    <ListBox x:Name="TemplateList"
-                             SelectionChanged="TemplateList_SelectionChanged"
-                             BorderThickness="0"
-                             Background="White"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding"       Value="10,8"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush"   Value="#EEF0F2"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#EEF6FF"/>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="#D6EAF8"/>
-                                        <Setter Property="Foreground" Value="#1B4F7A"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}"
-                                               FontWeight="SemiBold" FontSize="12"/>
-                                    <TextBlock>
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text"       Value="custom template"/>
-                                                <Setter Property="Foreground" Value="#7F8C8D"/>
-                                                <Setter Property="FontSize"   Value="10"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
-                                                        <Setter Property="Text" Value="built-in"/>
-                                                        <Setter Property="Foreground" Value="#2980B9"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                <ListBox x:Name="TemplateList"
+                         SelectionChanged="TemplateList_SelectionChanged"
+                         BorderThickness="0"
+                         Background="White"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding"       Value="10,8"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush"   Value="#EEF0F2"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#EEF6FF"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#D6EAF8"/>
+                                    <Setter Property="Foreground" Value="#1B4F7A"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}"
+                                           FontWeight="SemiBold" FontSize="12"/>
+                                <!-- One badge per tag — visible only when that tag is present -->
+                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <Border Background="#2A6A9E" CornerRadius="2" Padding="4,1"
+                                            Visibility="{Binding HasBuiltIn, Converter={StaticResource BoolVis}}">
+                                        <TextBlock Text="Built-in" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                    <Border Background="#8E44AD" CornerRadius="2" Padding="4,1" Margin="2,0,0,0"
+                                            Visibility="{Binding HasDynamic, Converter={StaticResource BoolVis}}">
+                                        <TextBlock Text="Dynamic" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                    <Border Background="#27AE60" CornerRadius="2" Padding="4,1" Margin="2,0,0,0"
+                                            Visibility="{Binding HasCustom, Converter={StaticResource BoolVis}}">
+                                        <TextBlock Text="Custom" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
                                 </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </Border>
 
             <GridSplitter Grid.Column="1" Width="5"
@@ -122,7 +178,7 @@
                              Margin="0,0,0,16"
                              ToolTip="Short description of the template"/>
 
-                    <!-- Info chip: ingebouwd / eigen -->
+                    <!-- Info chip -->
                     <Border x:Name="TypeChip" CornerRadius="3"
                             Padding="8,3" HorizontalAlignment="Left"
                             Margin="0,0,0,0">
@@ -133,7 +189,7 @@
         </Grid>
 
         <!-- ── Knoppen onderaan ── -->
-        <Border Grid.Row="2" Background="#EEF3F8"
+        <Border Grid.Row="3" Background="#EEF3F8"
                 BorderBrush="#D0D8E0" BorderThickness="0,1,0,0"
                 Padding="12,8">
             <Grid>
@@ -175,7 +231,7 @@
                             Click="Delete_Click"
                             Padding="10,6"
                             IsEnabled="False"
-                            ToolTip="Delete this custom template (built-in templates cannot be deleted)">
+                            ToolTip="Delete this custom template (built-in and dynamic templates cannot be deleted)">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Background"   Value="#C0392B"/>

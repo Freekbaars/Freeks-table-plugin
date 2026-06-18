@@ -10,6 +10,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WinHA = System.Windows.HorizontalAlignment;
 using WinVA = System.Windows.VerticalAlignment;
+using HA = RhinoTable.Core.Models.HorizontalAlignment;
+using VA = RhinoTable.Core.Models.VerticalAlignment;
 
 namespace RhinoTable.UI.Views
 {
@@ -630,11 +632,254 @@ namespace RhinoTable.UI.Views
         private void OpenHelp_Click(object sender, RoutedEventArgs e)
             => new HelpWindow { Owner = this }.ShowDialog();
 
+        // ── Sjablonen ────────────────────────────────────────────────────────
+
+        // Scant alle blokken in het document en bouwt een dynamische stuklijst.
+        private TableData? BuildBomTable()
+        {
+            // Verzamel alle niet-verwijderde blokdefinities met minstens 1 instantie
+            var allInstances = _doc.Objects
+                .OfType<Rhino.DocObjects.InstanceObject>()
+                .Where(o => !o.IsDeleted)
+                .ToList();
+
+            if (allInstances.Count == 0)
+            {
+                MessageBox.Show("Er zijn geen blokinstanties gevonden in het document.",
+                                "BOM lijst", MessageBoxButton.OK, MessageBoxImage.Information);
+                return null;
+            }
+
+            // Groepeer per blokdefinitie, gesorteerd op naam
+            var groups = allInstances
+                .GroupBy(o => o.InstanceDefinition.Id)
+                .Select(g => (Def: g.First().InstanceDefinition, Instances: g.ToList()))
+                .OrderBy(g => g.Def.Name)
+                .ToList();
+
+            // Bepaal extra kolommen: omschrijving en user-text sleutels
+            bool hasDesc = groups.Any(g => !string.IsNullOrEmpty(g.Def.Description));
+
+            var allKeys = groups
+                .SelectMany(g => g.Instances
+                    .SelectMany(o => o.Attributes.GetUserStrings()?.AllKeys
+                                     ?? Array.Empty<string>()))
+                .Where(k => !string.IsNullOrEmpty(k))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(k => k)
+                .ToList();
+
+            if (MessageBox.Show(
+                    $"Gevonden: {groups.Count} bloktype(s){(allKeys.Count > 0 ? $" met {allKeys.Count} user-text sleutel(s)" : "")}.\n" +
+                    "Huidige tabelinhoud vervangen door een BOM lijst?",
+                    "BOM lijst", MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes) return null;
+
+            // Kolombreedtes: nr, naam, aantal, omschrijving?, user-text...
+            var table = new TableData { DefaultFontSize = 3.5, DefaultFontName = "Arial" };
+            table.ColumnWidths.Add(12.0); // nr.
+            table.ColumnWidths.Add(50.0); // blok naam
+            table.ColumnWidths.Add(22.0); // aantal
+            if (hasDesc) table.ColumnWidths.Add(60.0);
+            foreach (var _ in allKeys) table.ColumnWidths.Add(35.0);
+
+            // ── Kopregel (zelfde stijl als statische BOM: lichtblauw) ──
+            var header = new TableRowData { IsHeader = true };
+            header.Cells.Add(MakeCell("Nr.",          bold: true, bg: "D6EAF8", ha: HA.Center));
+            header.Cells.Add(MakeCell("Blok naam",    bold: true, bg: "D6EAF8", ha: HA.Left));
+            header.Cells.Add(MakeCell("Aantal",       bold: true, bg: "D6EAF8", ha: HA.Center));
+            if (hasDesc)
+                header.Cells.Add(MakeCell("Omschrijving", bold: true, bg: "D6EAF8"));
+            foreach (var key in allKeys)
+                header.Cells.Add(MakeCell(key ?? "", bold: true, bg: "D6EAF8"));
+            table.Rows.Add(header);
+            table.RowHeights.Add(8.0);
+
+            // ── Datarijen ──
+            bool odd = false;
+            int rowNr = 1;
+            foreach (var (def, instances) in groups)
+            {
+                string? stripe = odd ? "F0F4F8" : null;
+                var row = new TableRowData();
+                row.Cells.Add(MakeCell((rowNr++).ToString(), bg: stripe, ha: HA.Center));
+                row.Cells.Add(MakeCell(def.Name, bg: stripe));
+                // Dynamisch veld: update automatisch als blokken worden toegevoegd/verwijderd
+                row.Cells.Add(MakeCell($"%<BlockInstanceCount(\"{def.Name}\")>%",
+                                       bg: stripe, ha: HA.Center));
+                if (hasDesc)
+                    row.Cells.Add(MakeCell(def.Description ?? "", bg: stripe));
+
+                // User-text: unieke waarden samenvoegen per sleutel
+                foreach (var key in allKeys)
+                {
+                    var vals = instances
+                        .Select(o => o.Attributes.GetUserStrings()?.Get(key) ?? "")
+                        .Where(v => !string.IsNullOrEmpty(v))
+                        .Distinct()
+                        .ToList();
+                    row.Cells.Add(MakeCell(string.Join(", ", vals), bg: stripe));
+                }
+
+                table.Rows.Add(row);
+                table.RowHeights.Add(8.0);
+                odd = !odd;
+            }
+
+            return table;
+        }
+
+        // BOM per instantie — één rij per blokinstantie, attribuutvelden zijn
+        // dynamische %<UserText("ID","Key")>% velden die in de viewport updaten.
+        private TableData? BuildBomPerInstanceTable()
+        {
+            var instances = _doc.Objects
+                .OfType<Rhino.DocObjects.InstanceObject>()
+                .Where(o => !o.IsDeleted)
+                .OrderBy(o => o.InstanceDefinition.Name)
+                .ToList();
+
+            if (instances.Count == 0)
+            {
+                MessageBox.Show("Er zijn geen blokinstanties gevonden in het document.",
+                                "BOM per instantie", MessageBoxButton.OK, MessageBoxImage.Information);
+                return null;
+            }
+
+            // Alle user-text sleutels die op minstens één instantie voorkomen
+            var allKeys = instances
+                .SelectMany(o => o.Attributes.GetUserStrings()?.AllKeys
+                                 ?? Array.Empty<string>())
+                .Where(k => !string.IsNullOrEmpty(k))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(k => k)
+                .ToList();
+
+            bool hasName = instances.Any(o => !string.IsNullOrEmpty(o.Name));
+
+            if (MessageBox.Show(
+                    $"Gevonden: {instances.Count} instantie(s)" +
+                    (allKeys.Count > 0 ? $" met {allKeys.Count} user-text sleutel(s)" : " (geen user-text)") +
+                    ".\nHuidige tabelinhoud vervangen door een dynamische BOM per instantie?",
+                    "BOM per instantie", MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes) return null;
+
+            var table = new TableData { DefaultFontSize = 3.5, DefaultFontName = "Arial" };
+            table.ColumnWidths.Add(12.0); // nr.
+            table.ColumnWidths.Add(50.0); // blok naam
+            if (hasName) table.ColumnWidths.Add(40.0); // object naam
+            foreach (var _ in allKeys) table.ColumnWidths.Add(35.0);
+
+            // ── Kopregel (lichtblauw) ──
+            var header = new TableRowData { IsHeader = true };
+            header.Cells.Add(MakeCell("Nr.",         bold: true, bg: "D6EAF8", ha: HA.Center));
+            header.Cells.Add(MakeCell("Blok naam",   bold: true, bg: "D6EAF8"));
+            if (hasName)
+                header.Cells.Add(MakeCell("Naam",    bold: true, bg: "D6EAF8"));
+            foreach (var key in allKeys)
+                header.Cells.Add(MakeCell(key ?? "", bold: true, bg: "D6EAF8"));
+            table.Rows.Add(header);
+            table.RowHeights.Add(8.0);
+
+            // ── Datarijen — één per instantie ──
+            bool odd = false;
+            int rowNr = 1;
+            foreach (var inst in instances)
+            {
+                string? stripe = odd ? "F0F4F8" : null;
+                var id = inst.Id.ToString();
+                var row = new TableRowData();
+
+                row.Cells.Add(MakeCell((rowNr++).ToString(), bg: stripe, ha: HA.Center));
+                // Blok naam via dynamisch veld — update als de definitie hernoemd wordt
+                row.Cells.Add(MakeCell($"%<BlockName(\"{id}\")>%", bg: stripe));
+
+                if (hasName)
+                    row.Cells.Add(MakeCell($"%<ObjectName(\"{id}\")>%", bg: stripe));
+
+                // Attribuut-velden: dynamisch — update wanneer user-text wordt gewijzigd
+                foreach (var key in allKeys)
+                    row.Cells.Add(MakeCell($"%<UserText(\"{id}\",\"{key}\")>%", bg: stripe));
+
+                table.Rows.Add(row);
+                table.RowHeights.Add(8.0);
+                odd = !odd;
+            }
+
+            return table;
+        }
+
+        // Bouwt een standaard titel blok met Rhino tekstvelden.
+        private static TableData BuildTitleBlockTable()
+        {
+            var rows = new (string Label, string Value)[]
+            {
+                ("Project",         "%<DocumentText(\"Project\")>%"),
+                ("Titel",           "%<DocumentText(\"Title\")>%"),
+                ("Opdrachtgever",   "%<DocumentText(\"Client\")>%"),
+                ("Getekend door",   "%<DocumentText(\"DrawnBy\")>%"),
+                ("Gecontroleerd",   "%<DocumentText(\"CheckedBy\")>%"),
+                ("Datum",           "%<Date(\"dd-MM-yyyy\")>%"),
+                ("Revisie",         "%<DocumentText(\"Revision\")>%"),
+                ("Schaal",          "%<DocumentText(\"Scale\")>%"),
+                ("Bestand",         "%<FileName(\"1\")>%"),
+                ("Pagina",          "%<PageNumber()>% / %<NumPages()>%"),
+            };
+
+            var table = new TableData { DefaultFontSize = 3.5, DefaultFontName = "Arial" };
+            table.ColumnWidths.Add(35.0);  // label kolom
+            table.ColumnWidths.Add(75.0);  // waarde kolom
+
+            foreach (var (label, value) in rows)
+            {
+                var row = new TableRowData();
+                row.Cells.Add(MakeCell(label, bold: true, bg: "163F60", fg: "FFFFFF", ha: HA.Left));
+                row.Cells.Add(MakeCell(value, ha: HA.Left));
+                table.Rows.Add(row);
+                table.RowHeights.Add(8.0);
+            }
+
+            return table;
+        }
+
+        // Hulpfunctie: maakt een cel met veelgebruikte opties.
+        private static TableCellData MakeCell(
+            string text, bool bold = false,
+            string? bg = null, string? fg = null,
+            HA ha = HA.Left)
+        {
+            var c = new TableCellData
+            {
+                Text                = text,
+                Bold                = bold,
+                HorizontalAlignment = ha,
+                VerticalAlignment   = VA.Middle,
+            };
+            if (bg != null) { c.BackgroundColor = bg; c.FillPattern = 1; }
+            if (fg != null) c.TextColor = fg;
+            return c;
+        }
+
+
         private void OpenTemplates_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new TemplateManagerWindow(_vm.TableData) { Owner = this };
-            if (dlg.ShowDialog() == true && dlg.LoadedTemplate != null)
-                _vm.LoadTemplate(dlg.LoadedTemplate);
+            if (dlg.ShowDialog() != true) return;
+
+            if (dlg.LoadedGeneratorId != null)
+            {
+                TableData? generated = dlg.LoadedGeneratorId switch
+                {
+                    "BOM_TYPE"     => BuildBomTable(),
+                    "BOM_INSTANCE" => BuildBomPerInstanceTable(),
+                    _              => null
+                };
+                if (generated != null) _vm.ReplaceTableData(generated);
+            }
+            else if (dlg.LoadedTemplate != null)
+            {
+                _vm.ReplaceTableData(dlg.LoadedTemplate);
+            }
         }
 
         private static string ColLetter(int index)
@@ -1140,6 +1385,10 @@ namespace RhinoTable.UI.Views
 
             var go = new Rhino.Input.Custom.GetObject();
             go.SetCommandPrompt(prompt);
+            // Exclude our own RhinoTable block instances from the pick
+            go.SetCustomGeometryFilter((rhinoObj, _, _) =>
+                rhinoObj is not Rhino.DocObjects.InstanceObject inst ||
+                !inst.InstanceDefinition.Name.StartsWith("RhinoTable_", StringComparison.Ordinal));
 
             var overlay = BuildPickOverlay();
             overlay.Show();

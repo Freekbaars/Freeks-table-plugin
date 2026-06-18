@@ -503,6 +503,17 @@ namespace RhinoTable.UI.ViewModels
             RebuildGridItems(syncFirst: false);
         }
 
+        // Vervangt de volledige tabel door een nieuw sjabloon (undo-baar).
+        public void ReplaceTableData(TableData newData)
+        {
+            PushUndoSnapshot();
+            _tableData = newData;
+            RebuildGridItems(syncFirst: false);
+            Notify(nameof(TableName));
+            Notify(nameof(LinkedFileLabel));
+            Notify(nameof(IsEditingExisting));
+        }
+
         // ── Grid rebuild ──────────────────────────────────────────────────────
         // syncFirst=false bij een volledige vervanging van _tableData (import),
         // want anders overschrijft SyncObservableToModel de zojuist ingeladen
