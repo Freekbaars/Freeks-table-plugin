@@ -392,8 +392,8 @@ namespace RhinoTable.Core.Layout
         private static string WrapText(string text, double fontSize, double widthMm)
         {
             int charsPerLine = Math.Max(1, (int)(widthMm / (fontSize * 0.60)));
-            var words  = text.Split(' ');
-            var sb     = new System.Text.StringBuilder();
+            var words = text.Split(' ');
+            var sb    = new System.Text.StringBuilder();
             int lineLen = 0;
             foreach (var word in words)
             {
@@ -401,8 +401,25 @@ namespace RhinoTable.Core.Layout
                 { sb.Append('\n'); lineLen = 0; }
                 else if (lineLen > 0)
                 { sb.Append(' '); lineLen++; }
-                sb.Append(word);
-                lineLen += word.Length;
+
+                // Forceer afbreking bij woorden langer dan een hele regel (bijv. onderdeel-nummers, URLs)
+                if (word.Length > charsPerLine)
+                {
+                    var remaining = word;
+                    while (remaining.Length > 0)
+                    {
+                        int take = Math.Min(charsPerLine - lineLen, remaining.Length);
+                        sb.Append(remaining[..take]);
+                        lineLen += take;
+                        remaining = remaining[take..];
+                        if (remaining.Length > 0) { sb.Append('\n'); lineLen = 0; }
+                    }
+                }
+                else
+                {
+                    sb.Append(word);
+                    lineLen += word.Length;
+                }
             }
             return sb.ToString();
         }

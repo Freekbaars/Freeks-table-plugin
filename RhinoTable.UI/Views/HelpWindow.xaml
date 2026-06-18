@@ -201,7 +201,7 @@
 
             <!-- ── Features ───────────────────────────────────────────────── -->
             <TabItem Header="Features">
-                <ScrollViewer Background="#163F60" VerticalScrollBarVisibility="Auto" Padding="16,14" Margin="-3,0,3,0">
+                <ScrollViewer Background="#163F60" VerticalScrollBarVisibility="Auto" Padding="16,14">
                     <StackPanel>
 
                         <TextBlock Text="STRUCTURE" Foreground="#4FC3F7" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>

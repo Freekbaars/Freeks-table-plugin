@@ -12,4 +12,7 @@
   <ItemGroup>
     <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" ExcludeAssets="runtime" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\4x\*.png" />
+  </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
         xmlns:conv="clr-namespace:RhinoTable.UI.Converters"
         x:Name="EditorWindow"
         Title="RhinoTable — Table Editor"
-        Width="1481" Height="690"
+        Width="1500" Height="690"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         Background="#F2F5F8">
@@ -48,20 +48,21 @@
                         <Button Command="{Binding PlaceTableCommand}"
                                 ToolTip="Place or update table in Rhino (Ctrl+Enter)"
                                 Style="{StaticResource PrimaryButton}"
-                                MinWidth="90" Height="38">
+                                MinWidth="90" Height="38" Click="Button_Click_2">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock FontSize="18" FontWeight="Bold" HorizontalAlignment="Center">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="✓"/>
+                                <Image Width="25" Height="25" HorizontalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/place_table.png"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsEditingExisting}" Value="True">
-                                                    <Setter Property="Text" Value="↻"/>
+                                                    <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/update_table.png"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
+                                    </Image.Style>
+                                </Image>
                                 <TextBlock Text="{Binding PlaceButtonLabel}"
                                            FontSize="10" HorizontalAlignment="Center"/>
                             </StackPanel>
@@ -69,11 +70,13 @@
                         <Button x:Name="OpenTemplatesButton"
                                 Click="OpenTemplates_Click"
                                 Style="{StaticResource ToolbarButton}"
-                                Height="22" Margin="0,3,0,0"
+                                Height="62" Margin="0,3,0,0"
                                 ToolTip="Sjablonenmanager — laad ingebouwde layouts of bewaar eigen sjablonen">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="&#x1F4CB;" FontSize="11" VerticalAlignment="Center"/>
-                                <TextBlock Text=" Sjablonen" FontSize="9" VerticalAlignment="Center"/>
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/templates.png"
+                                       Width="28" Height="47"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text=" Templates" FontSize="9" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -99,39 +102,55 @@
 
                             <!-- Rij-operaties -->
                             <Button Grid.Row="0" Grid.Column="0"
-                                    Content="↑" Command="{Binding InsertRowAboveCommand}"
+                                    Command="{Binding InsertRowAboveCommand}"
                                     ToolTip="Insert row above"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/row_insert_above.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="0" Grid.Column="1"
-                                    Content="↓" Command="{Binding InsertRowBelowCommand}"
+                                    Command="{Binding InsertRowBelowCommand}"
                                     ToolTip="Insert row below"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/row_insert_below.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="0" Grid.Column="2"
-                                    Content="＋" Command="{Binding AddRowCommand}"
+                                    Command="{Binding AddRowCommand}"
                                     ToolTip="Add row at end"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/row_add.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="0" Grid.Column="3"
-                                    Content="✕" Command="{Binding RemoveRowCommand}"
+                                    Command="{Binding RemoveRowCommand}"
                                     ToolTip="Delete selected row"
-                                    Style="{StaticResource DangerButton}" Padding="2,3"/>
+                                    Style="{StaticResource DangerButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/row_delete.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
 
                             <!-- Kolom-operaties -->
                             <Button Grid.Row="1" Grid.Column="0"
-                                    Content="←" Command="{Binding InsertColumnLeftCommand}"
+                                    Command="{Binding InsertColumnLeftCommand}"
                                     ToolTip="Insert column left"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/col_insert_left.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="1" Grid.Column="1"
-                                    Content="→" Command="{Binding InsertColumnRightCommand}"
+                                    Command="{Binding InsertColumnRightCommand}"
                                     ToolTip="Insert column right"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/col_insert_right.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="1" Grid.Column="2"
-                                    Content="＋" Command="{Binding AddColumnCommand}"
+                                    Command="{Binding AddColumnCommand}"
                                     ToolTip="Add column at end"
-                                    Style="{StaticResource ToolbarButton}" Padding="2,3"/>
+                                    Style="{StaticResource ToolbarButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/col_add.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                             <Button Grid.Row="1" Grid.Column="3"
-                                    Content="✕" Command="{Binding RemoveColumnCommand}"
+                                    Command="{Binding RemoveColumnCommand}"
                                     ToolTip="Delete selected column"
-                                    Style="{StaticResource DangerButton}" Padding="2,3"/>
+                                    Style="{StaticResource DangerButton}" Padding="2,3">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/col_delete.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
                         </Grid>
 
                         <!-- Sublabels -->
@@ -150,7 +169,12 @@
                                       Command="{Binding ToggleHeaderRowCommand}"
                                       Style="{StaticResource DropdownToggleButton}"
                                       ToolTip="Make row 1 a header (bold + thick border). Only available on row 1.">
-                            <TextBlock Text="H  Header row" FontSize="10"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/header_row.png"
+                                       Width="13" Height="13" VerticalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text=" Header row" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </ToggleButton>
                     </StackPanel>
                 </Border>
@@ -168,22 +192,44 @@
                                 <Button Command="{Binding BoldCommand}"
                                         ToolTip="Bold (Ctrl+B)"
                                         Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
-                                    <TextBlock Text="B" FontWeight="Bold" FontSize="13"/>
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/text_bold.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBold}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/text_bold_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
                                 </Button>
                                 <Button Command="{Binding ItalicCommand}"
                                         ToolTip="Italic (Ctrl+I)"
                                         Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
-                                    <TextBlock Text="I" FontStyle="Italic" FontSize="13"/>
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/text_italic.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsItalic}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/text_italic_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
                                 </Button>
                                 <Button Command="{Binding InsertSubCommand}"
                                         ToolTip="Insert subscript: _{text}"
                                         Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
-                                    <TextBlock>X<Run BaselineAlignment="Subscript" FontSize="8">2</Run></TextBlock>
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/text_subscript.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 </Button>
                                 <Button Command="{Binding InsertSupCommand}"
                                         ToolTip="Insert superscript: ^{text}"
                                         Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
-                                    <TextBlock>X<Run BaselineAlignment="Superscript" FontSize="8">2</Run></TextBlock>
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/text_superscript.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 </Button>
                                 <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
                                 <!-- Tekstkleur toggle -->
@@ -192,7 +238,7 @@
                                               ToolTip="Choose text color"
                                               Height="26" MinWidth="46">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="T" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/text_color.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <TextBlock Text="▼" FontSize="8" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
@@ -219,7 +265,9 @@
                                                 <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
                                                 <ItemsControl ItemsSource="{Binding RecentColors}">
                                                     <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Width="164"/>
+                                                        </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -337,47 +385,150 @@
 
                             <!-- Rij 1: H-uitlijning | V-uitlijning | terugloop -->
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="≡L" Command="{Binding AlignLeftCommand}"
+                                <Button Command="{Binding AlignLeftCommand}"
                                         ToolTip="Align left"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="≡C" Command="{Binding AlignCenterCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_left.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignLeft}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_left_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                                <Button Command="{Binding AlignCenterCommand}"
                                         ToolTip="Center"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="≡R" Command="{Binding AlignRightCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_center.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignCenter}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_center_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                                <Button Command="{Binding AlignRightCommand}"
                                         ToolTip="Align right"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_right.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignRight}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_right_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
                                 <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
-                                <Button Content="⊤" Command="{Binding AlignTopCommand}"
+                                <Button Command="{Binding AlignTopCommand}"
                                         ToolTip="Align text to top of cell"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="⊢" Command="{Binding AlignMiddleCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_top.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignTop}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_top_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                                <Button Command="{Binding AlignMiddleCommand}"
                                         ToolTip="Center text vertically"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="⊥" Command="{Binding AlignBottomCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_middle.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignMiddle}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_middle_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                                <Button Command="{Binding AlignBottomCommand}"
                                         ToolTip="Align text to bottom of cell"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_bottom.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlignBottom}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/align_bottom_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
                                 <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
-                                <Button Content="↵" Command="{Binding ToggleWordWrapCommand}"
+                                <Button Command="{Binding ToggleWordWrapCommand}"
                                         ToolTip="Toggle word wrap"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/word_wrap.png"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsWordWrap}" Value="True">
+                                                        <Setter Property="Source" Value="/RhinoTable.UI;component/Resources/Icons/4x/word_wrap_active.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
                             </StackPanel>
 
                             <!-- Rij 2: samenvoegen -->
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                <Button Content="⊞→ Merge"
-                                        Command="{Binding MergeCellsCommand}"
+                                <Button Command="{Binding MergeCellsCommand}"
                                         ToolTip="Merge selected cells horizontally (click again to unmerge)"
-                                        Style="{StaticResource ToolbarButton}" Padding="5,3" Margin="0,0,2,0"/>
-                                <Button Content="⊞↓ Merge"
-                                        Command="{Binding MergeDownCommand}"
+                                        Style="{StaticResource ToolbarButton}" Padding="5,3" Margin="0,0,2,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/merge_horizontal.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        <TextBlock Text=" Merge" FontSize="10" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding MergeDownCommand}"
                                         ToolTip="Merge selected cells vertically (click again to unmerge)"
-                                        Style="{StaticResource ToolbarButton}" Padding="5,3"/>
+                                        Style="{StaticResource ToolbarButton}" Padding="5,3">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/merge_vertical.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        <TextBlock Text=" Merge" FontSize="10" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
-                            <Button Content="↔  Auto-width"
-                                    Command="{Binding AutoWidthCommand}"
+                            <Button Command="{Binding AutoWidthCommand}"
                                     Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
                                     Padding="5,3"
-                                    ToolTip="Fit column widths to content" Width="122" HorizontalAlignment="Left" Click="Button_Click"/>
+                                    ToolTip="Fit column widths to content" Width="122" HorizontalAlignment="Left" Click="Button_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/auto_width.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text=" Auto-width" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
 
                             <!-- Rij 3: auto-width -->
                         </StackPanel>
@@ -401,7 +552,7 @@
                                               ToolTip="Choose fill color"
                                               Height="26" MinWidth="46">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="V" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/fill_color.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <TextBlock Text=" ▼" FontSize="8" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
@@ -430,7 +581,9 @@
                                                 <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
                                                 <ItemsControl ItemsSource="{Binding RecentColors}">
                                                     <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Width="164"/>
+                                                        </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -523,7 +676,7 @@
                                               ToolTip="Choose hatch color (color of hatch lines)"
                                               Height="26" MinWidth="46" Margin="0,2,0,0">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="H" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/hatch_color.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <TextBlock Text=" ▼" FontSize="8" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
@@ -550,7 +703,9 @@
                                                 <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
                                                 <ItemsControl ItemsSource="{Binding RecentColors}">
                                                     <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Width="164"/>
+                                                        </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -634,17 +789,17 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Command="{Binding SetFillPatternCommand}" CommandParameter="0"
                                             Style="{StaticResource PatternButton}" Height="26" Padding="5,0"
-                                            ToolTip="No fill — also removes hatch pattern">
+                                            ToolTip="No fill — also removes hatch pattern" Width="30">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="□" FontSize="11" VerticalAlignment="Center"/>
+                                            <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/fill_none.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             <TextBlock Text=" None" FontSize="9" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                     <Button Command="{Binding SetFillPatternCommand}" CommandParameter="1"
                                             Style="{StaticResource PatternButton}" Height="26" Padding="5,0" Margin="2,0,0,0"
-                                            ToolTip="Solid fill with the selected fill color">
+                                            ToolTip="Solid fill with the selected fill color" Click="Button_Click_1" Width="30">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="■" FontSize="11" VerticalAlignment="Center"/>
+                                            <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/fill_solid.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.403,0.518"/>
                                             <TextBlock Text=" Solid" FontSize="9" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
@@ -655,7 +810,7 @@
                                               ToolTip="Choose hatch pattern (from Rhino document)"
                                               Height="24" Margin="0,2,0,0" Padding="5,2">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="⬚" FontSize="11" VerticalAlignment="Center"/>
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/hatch_pattern.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <TextBlock Text=" Hatch Pattern ▼" FontSize="9" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
@@ -670,10 +825,12 @@
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                 <TextBlock Text="Hatch Pattern" Foreground="#A8C8E8"
                                                            FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
-                                                <Button Content="↺" Click="RefreshHatchPatterns_Click"
+                                                <Button Click="RefreshHatchPatterns_Click"
                                                         Style="{StaticResource ToolbarButton}"
-                                                        Width="20" Height="16" FontSize="9" Padding="0"
-                                                        Margin="8,0,0,0" ToolTip="Refresh list from Rhino document"/>
+                                                        Width="20" Height="16" Padding="0"
+                                                        Margin="8,0,0,0" ToolTip="Refresh list from Rhino document">
+                                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/hatch_refresh.png" Width="15" Height="15" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                </Button>
                                             </StackPanel>
                                             <ListBox x:Name="HatchPatternListBox"
                                                      ItemsSource="{Binding AvailableHatchPatterns}"
@@ -765,31 +922,41 @@
 
                             <!-- Rij 1: presets + kleur -->
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="✕" Command="{Binding BorderNoneCommand}"
+                                <Button Command="{Binding BorderNoneCommand}"
                                         ToolTip="Remove all borders"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="□" Command="{Binding BorderAllCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_none.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding BorderAllCommand}"
                                         ToolTip="All borders — thin (0.25 mm)"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="■" Command="{Binding BorderOutsideCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_all.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding BorderOutsideCommand}"
                                         ToolTip="Set outside border"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_outside.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
                                 <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
-                                <Button Content="—" Command="{Binding SetBorderThicknessCommand}"
+                                <Button Command="{Binding SetBorderThicknessCommand}"
                                         CommandParameter="0.25"
                                         ToolTip="Thickness: thin (0.25 mm)"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="═" Command="{Binding SetBorderThicknessCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_thin.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding SetBorderThicknessCommand}"
                                         CommandParameter="0.5"
                                         ToolTip="Thickness: thick (0.5 mm)"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_thick.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
                                 <Rectangle Width="1" Fill="#FFFFFF" Opacity="0.2" Margin="3,4"/>
                                 <ToggleButton x:Name="BorderColorToggle"
                                               Style="{StaticResource DropdownToggleButton}"
                                               ToolTip="Choose border color"
                                               Height="26" MinWidth="34">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="R" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                                        <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_color.png" Width="20" Height="20" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <TextBlock Text=" ▼" FontSize="7" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
@@ -816,7 +983,9 @@
                                                 <TextBlock Text="Recent" Foreground="#7AAACC" FontSize="9" Margin="0,0,0,3"/>
                                                 <ItemsControl ItemsSource="{Binding RecentColors}">
                                                     <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate><WrapPanel Width="164"/></ItemsPanelTemplate>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Width="164"/>
+                                                        </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -885,18 +1054,26 @@
 
                             <!-- Rij 2: per-zijde knoppen -->
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                <Button Content="⊤" Command="{Binding BorderTopCommand}"
+                                <Button Command="{Binding BorderTopCommand}"
                                         ToolTip="Toggle top border"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="⊥" Command="{Binding BorderBottomCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_top.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding BorderBottomCommand}"
                                         ToolTip="Toggle bottom border"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="⊣" Command="{Binding BorderLeftCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_bottom.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding BorderLeftCommand}"
                                         ToolTip="Toggle left border"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
-                                <Button Content="⊢" Command="{Binding BorderRightCommand}"
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_left.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <Button Command="{Binding BorderRightCommand}"
                                         ToolTip="Toggle right border"
-                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3"/>
+                                        Style="{StaticResource ToolbarButton}" Width="26" Padding="2,3">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/border_right.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
                             </StackPanel>
 
                         </StackPanel>
@@ -910,22 +1087,38 @@
                     <StackPanel>
                         <TextBlock Text="IMPORT" Style="{StaticResource GroupLabel}"/>
                         <StackPanel Orientation="Vertical" Width="87">
-                            <Button Content="📄 CSV"
-                                    Command="{Binding ImportCsvCommand}"
+                            <Button Command="{Binding ImportCsvCommand}"
                                     Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import CSV file" HorizontalAlignment="Left"/>
-                            <Button Content="📊 Excel"
-                                    Command="{Binding ImportExcelCommand}"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import CSV file" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/import_csv.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text=" CSV" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ImportExcelCommand}"
                                     Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import Excel file" HorizontalAlignment="Left"/>
-                            <Button Content="🔗 Link Excel"
-                                    Command="{Binding LinkExcelCommand}"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Import Excel file" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/import_excel.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text=" Excel" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding LinkExcelCommand}"
                                     Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Link to Excel file (live update)" HorizontalAlignment="Left"/>
-                            <Button Content="🔄 Refresh"
-                                    Command="{Binding RefreshLinkedCommand}"
+                                    Padding="6,4" Margin="0,0,0,2" ToolTip="Link to Excel file (live update)" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/link_excel.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text=" Link Excel" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding RefreshLinkedCommand}"
                                     Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                    Padding="6,4" ToolTip="Refresh linked Excel data" HorizontalAlignment="Left"/>
+                                    Padding="6,4" ToolTip="Refresh linked Excel data" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/refresh_link.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <TextBlock Text=" Refresh" FontSize="10" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -944,10 +1137,14 @@
                     </Border.RenderTransform>
                     <StackPanel>
                         <TextBlock Text="UTILITIES" Style="{StaticResource GroupLabel}"/>
-                        <Button Content="1,2,3  Auto-number"
-                                Command="{Binding AutoNumberCommand}"
+                        <Button Command="{Binding AutoNumberCommand}"
                                 Style="{StaticResource ToolbarButton}" HorizontalContentAlignment="Left"
-                                Padding="6,4" ToolTip="Fill first column with row numbers (skips header rows)"/>
+                                Padding="6,4" ToolTip="Fill first column with row numbers (skips header rows)">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/auto_number.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text=" Auto-number" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Border>
 
@@ -955,9 +1152,14 @@
 
                 <!-- ── HELP ───────────────────────────────────────────────── -->
                 <Border Style="{StaticResource ToolGroup}" Padding="6,4">
-                    <Button Content="? Help" Click="OpenHelp_Click"
+                    <Button Click="OpenHelp_Click"
                             Style="{StaticResource ToolbarButton}"
-                            Padding="8,4" ToolTip="Show keyboard shortcuts and feature overview"/>
+                            Padding="8,4" ToolTip="Show keyboard shortcuts and feature overview">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/RhinoTable.UI;component/Resources/Icons/4x/help.png" Width="18" Height="18" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <TextBlock Text=" Help" FontSize="10" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </Border>
 
             </StackPanel>

@@ -138,7 +138,11 @@ namespace Freeks_table_plugin
                 if (!importCache.TryGetValue(cacheKey, out var fresh))
                 {
                     try   { fresh = new ExcelImporter().Import(path, td.LinkedExcelSheet); }
-                    catch { fresh = null; }
+                    catch (Exception ex)
+                    {
+                        RhinoApp.WriteLine($"RhinoTable: failed to sync '{System.IO.Path.GetFileName(path)}': {ex.Message}");
+                        fresh = null;
+                    }
                     importCache[cacheKey] = fresh;
                 }
                 if (fresh == null) continue;

@@ -169,6 +169,16 @@ namespace RhinoTable.UI.ViewModels
             _selectedRow >= 0 && _selectedRow < _tableData.Rows.Count
             && _tableData.Rows[_selectedRow].IsHeader;
 
+        public bool IsBold        => _selectedCell?.Bold ?? false;
+        public bool IsItalic      => _selectedCell?.Italic ?? false;
+        public bool IsAlignLeft   => _selectedCell == null || _selectedCell.HorizontalAlignment == HorizontalAlignment.Left;
+        public bool IsAlignCenter => _selectedCell?.HorizontalAlignment == HorizontalAlignment.Center;
+        public bool IsAlignRight  => _selectedCell?.HorizontalAlignment == HorizontalAlignment.Right;
+        public bool IsAlignTop    => _selectedCell?.VerticalAlignment == VerticalAlignment.Top;
+        public bool IsAlignMiddle => _selectedCell == null || _selectedCell.VerticalAlignment == VerticalAlignment.Middle;
+        public bool IsAlignBottom => _selectedCell?.VerticalAlignment == VerticalAlignment.Bottom;
+        public bool IsWordWrap    => _selectedCell?.WordWrap ?? false;
+
         // Label voor de gekoppelde Excel — toont bestandsnaam of "(geen koppeling)"
         public string LinkedFileLabel => _tableData.LinkedExcelPath != null
             ? System.IO.Path.GetFileName(_tableData.LinkedExcelPath)
@@ -436,6 +446,15 @@ namespace RhinoTable.UI.ViewModels
             Notify(nameof(SelectedHatchScale));
             Notify(nameof(SelectedHatchRotation));
             Notify(nameof(IsCurrentRowHeader));
+            Notify(nameof(IsBold));
+            Notify(nameof(IsItalic));
+            Notify(nameof(IsAlignLeft));
+            Notify(nameof(IsAlignCenter));
+            Notify(nameof(IsAlignRight));
+            Notify(nameof(IsAlignTop));
+            Notify(nameof(IsAlignMiddle));
+            Notify(nameof(IsAlignBottom));
+            Notify(nameof(IsWordWrap));
         }
 
         public void ClearSelectedCells(int row, int col)
@@ -581,6 +600,7 @@ namespace RhinoTable.UI.ViewModels
             TableData result = await Task.Run(() => new CsvImporter().Import(path, progress));
 
             _tableData = result;
+            new AutoWidthCalculator().Apply(_tableData);
             RebuildGridItems(syncFirst: false);
             ImportFinished?.Invoke();
 
@@ -644,6 +664,7 @@ namespace RhinoTable.UI.ViewModels
             result.SourceObjectId = _tableData.SourceObjectId;
 
             _tableData = result;
+            new AutoWidthCalculator().Apply(_tableData);
             RebuildGridItems(syncFirst: false);
             ImportFinished?.Invoke();
 
@@ -944,6 +965,7 @@ namespace RhinoTable.UI.ViewModels
             bool allBold = _selectedCells.All(c => c.Bold);
             foreach (var cell in _selectedCells) cell.Bold = !allBold;
             GridRefreshRequested?.Invoke();
+            Notify(nameof(IsBold));
         }
 
         private void ToggleItalic()
@@ -953,6 +975,7 @@ namespace RhinoTable.UI.ViewModels
             bool allItalic = _selectedCells.All(c => c.Italic);
             foreach (var cell in _selectedCells) cell.Italic = !allItalic;
             GridRefreshRequested?.Invoke();
+            Notify(nameof(IsItalic));
         }
 
         private void InsertSubscript()
@@ -977,6 +1000,9 @@ namespace RhinoTable.UI.ViewModels
             PushUndoSnapshot();
             foreach (var cell in _selectedCells) cell.HorizontalAlignment = a;
             GridRefreshRequested?.Invoke();
+            Notify(nameof(IsAlignLeft));
+            Notify(nameof(IsAlignCenter));
+            Notify(nameof(IsAlignRight));
         }
 
         // ── Undo / Redo ───────────────────────────────────────────────────────
@@ -1155,6 +1181,9 @@ namespace RhinoTable.UI.ViewModels
             PushUndoSnapshot();
             foreach (var cell in _selectedCells) cell.VerticalAlignment = a;
             GridRefreshRequested?.Invoke();
+            Notify(nameof(IsAlignTop));
+            Notify(nameof(IsAlignMiddle));
+            Notify(nameof(IsAlignBottom));
         }
 
         // ── Woordterugloop ────────────────────────────────────────────────────
@@ -1166,6 +1195,7 @@ namespace RhinoTable.UI.ViewModels
             bool allWrap = _selectedCells.All(c => c.WordWrap);
             foreach (var cell in _selectedCells) cell.WordWrap = !allWrap;
             GridRefreshRequested?.Invoke();
+            Notify(nameof(IsWordWrap));
         }
 
         // ── Randen ────────────────────────────────────────────────────────────

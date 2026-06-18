@@ -38,7 +38,7 @@ namespace RhinoTable.Core.Import
             for (int c = firstCol; c <= lastCol; c++)
             {
                 double w = ws.Column(c).Width;
-                table.ColumnWidths.Add(w > 0 ? Math.Round(w * 2.54, 1) : 30.0);
+                table.ColumnWidths.Add(w > 0 ? Math.Min(Math.Round(w * 2.54, 1), 80.0) : 30.0);
             }
 
             for (int r = firstRow; r <= lastRow; r++)
