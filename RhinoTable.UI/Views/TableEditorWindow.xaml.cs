@@ -1296,9 +1296,9 @@ namespace RhinoTable.UI.Views
             if (!DoViewportPick("Select curve for length field", out Guid id)) return;
             var opts = new (string L, string? U)[]
             {
-                ("Annotatiesstijl (standaard)", null),
-                ("mm",   "mm"),  ("cm",  "cm"),  ("m",   "m"),
-                ("km",   "km"),  ("inch","inch"), ("ft",  "ft"),
+                ("Annotation style (default)", null),
+                ("mm",   "Millimeters"),  ("cm",  "Centimeters"),  ("m",   "Meters"),
+                ("km",   "kilometers"),  ("inch","Inches"), ("ft",  "Feet"),
             };
             var label = ShowItemPickerDialog("Lengte eenheid", "Eenheid:", opts.Select(o => o.L).ToList());
             if (label == null) return;
@@ -1316,9 +1316,9 @@ namespace RhinoTable.UI.Views
             if (!DoViewportPick("Select object for area field", out Guid id)) return;
             var opts = new (string L, string? U)[]
             {
-                ("Annotatiesstijl (standaard)", null),
-                ("mm²",   "mm2"), ("cm²",   "cm2"), ("m²",    "m2"),
-                ("km²",   "km2"), ("inch²",  "in2"), ("ft²",   "ft2"),
+                ("Annotation style (default)", null),
+                ("mm²",   "Millimeters"), ("cm²",   "Centimeters"), ("m²",    "Meters"),
+                ("km²",   "kilometers"), ("inch²",  "Inches"), ("ft²",   "Feet"),
             };
             var label = ShowItemPickerDialog("Oppervlakte eenheid", "Eenheid:", opts.Select(o => o.L).ToList());
             if (label == null) return;
@@ -1336,14 +1336,14 @@ namespace RhinoTable.UI.Views
             if (!DoViewportPick("Select object for volume field", out Guid id)) return;
             var opts = new (string L, string Field)[]
             {
-                ("Standaard eenheid  —  gesloten",  $"%<Volume(\"{id}\")>%"),
-                ("Standaard eenheid  —  ook open",  $"%<Volume(\"{id}\",\"True\")>%"),
-                ("mm³  —  gesloten",                $"%<Volume(\"{id}\",\"mm3\")>%"),
-                ("mm³  —  ook open",                $"%<Volume(\"{id}\",\"mm3\",\"True\")>%"),
-                ("cm³  —  gesloten",                $"%<Volume(\"{id}\",\"cm3\")>%"),
-                ("cm³  —  ook open",                $"%<Volume(\"{id}\",\"cm3\",\"True\")>%"),
-                ("m³   —  gesloten",                $"%<Volume(\"{id}\",\"m3\")>%"),
-                ("m³   —  ook open",                $"%<Volume(\"{id}\",\"m3\",\"True\")>%"),
+                ("Standard unit  —  Closed",  $"%<Volume(\"{id}\")>%"),
+                ("Standard unit  —  Open",  $"%<Volume(\"{id}\",\"True\")>%"),
+                ("mm³  —  Closed",                $"%<Volume(\"{id}\",\"Millimeters\")>%"),
+                ("mm³  —  Open",                $"%<Volume(\"{id}\",\"Millimeters\",\"True\")>%"),
+                ("cm³  —  Closed",                $"%<Volume(\"{id}\",\"Centimeters\")>%"),
+                ("cm³  —  Open",                $"%<Volume(\"{id}\",\"Centimeters\",\"True\")>%"),
+                ("m³   —  Closed",                $"%<Volume(\"{id}\",\"Meters\")>%"),
+                ("m³   —  Open",                $"%<Volume(\"{id}\",\"Meters\",\"True\")>%"),
             };
             var label = ShowItemPickerDialog("Volume optie", "Eenheid / open objecten:", opts.Select(o => o.L).ToList());
             if (label == null) return;
