@@ -153,16 +153,6 @@
                             </Button>
                         </Grid>
 
-                        <!-- Sublabels -->
-                        <Grid Margin="0,2,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52"/>
-                                <ColumnDefinition Width="52"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Rows"    Foreground="#A8C8E8" FontSize="8" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="Columns" Foreground="#A8C8E8" FontSize="8" HorizontalAlignment="Center"/>
-                        </Grid>
-
                         <!-- Header-rij toggle (alleen rij 1) -->
                         <ToggleButton Margin="0,4,0,0" Height="22" Padding="6,2"
                                       IsChecked="{Binding IsCurrentRowHeader, Mode=OneWay}"

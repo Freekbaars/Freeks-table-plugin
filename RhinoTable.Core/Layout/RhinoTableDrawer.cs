@@ -59,8 +59,28 @@ namespace RhinoTable.Core.Layout
             for (int r = 0; r < table.RowHeights.Count; r++)
                 yOffsets[r + 1] = yOffsets[r] + table.RowHeights[r];
 
-            // Standaard rand-kleur: donkergrijs
             var defaultBorderColor = Color.FromArgb(90, 90, 90);
+            const float defaultThick = 0.25f;
+
+            // Rand-segmenten worden verzameld en gededupliceerd op positie (integer micro-mm keys).
+            // Als twee aangrenzende cellen dezelfde kant claimen, wint de dikkste.
+            var hSegs = new Dictionary<(long x0, long x1, long y),  (float Thick, Color Col)>();
+            var vSegs = new Dictionary<(long x,  long y0, long y1), (float Thick, Color Col)>();
+
+            static long K(double v) => (long)Math.Round(v * 1000);
+
+            void VoteH(double ax0, double ax1, double ay, float thick, Color col)
+            {
+                var key = (K(Math.Min(ax0, ax1)), K(Math.Max(ax0, ax1)), K(ay));
+                if (!hSegs.TryGetValue(key, out var ex) || thick > ex.Thick)
+                    hSegs[key] = (thick, col);
+            }
+            void VoteV(double ax, double ay0, double ay1, float thick, Color col)
+            {
+                var key = (K(ax), K(Math.Min(ay0, ay1)), K(Math.Max(ay0, ay1)));
+                if (!vSegs.TryGetValue(key, out var ex) || thick > ex.Thick)
+                    vSegs[key] = (thick, col);
+            }
 
             for (int r = 0; r < table.Rows.Count; r++)
             {
@@ -86,54 +106,31 @@ namespace RhinoTable.Core.Layout
 
                     if (!string.IsNullOrEmpty(cell.HatchPatternName))
                     {
-                        // Nieuw: Rhino arceerpatroon bovenop eventuele achtergrondkleur
                         DrawRhinoHatch(geometryList, attributesList,
                             x0, x1, y0, y1, cell.HatchPatternName, hatchColor, bgColor, doc,
                             cell.HatchScale, cell.HatchRotation);
                     }
                     else if (cell.FillPattern > 0)
                     {
-                        // Legacy: handmatig getekende patronen (0-5)
                         DrawCellFill(geometryList, attributesList,
                             x0, x1, y0, y1, cell.FillPattern, hatchColor, bgColor, doc);
                     }
 
-                    bool hasCustomBorder = cell.BorderTop > 0 || cell.BorderBottom > 0
-                                       || cell.BorderLeft > 0 || cell.BorderRight > 0;
+                    // Rand-segmenten verzamelen — elke gedeelde kant wordt slechts één keer getekend
+                    var customColor = ParseHexColor(cell.BorderColor) ?? Color.Black;
 
-                    if (hasCustomBorder)
-                    {
-                        // Teken de vier zijden afzonderlijk met eigen dikte/kleur
-                        var customColor = ParseHexColor(cell.BorderColor) ?? Color.Black;
-                        AddBorderSide(geometryList, attributesList,
-                            new Point3d(x0, y0, 0), new Point3d(x1, y0, 0),
-                            cell.BorderTop,    customColor, defaultBorderColor);
-                        AddBorderSide(geometryList, attributesList,
-                            new Point3d(x0, y1, 0), new Point3d(x1, y1, 0),
-                            cell.BorderBottom, customColor, defaultBorderColor);
-                        AddBorderSide(geometryList, attributesList,
-                            new Point3d(x0, y0, 0), new Point3d(x0, y1, 0),
-                            cell.BorderLeft,   customColor, defaultBorderColor);
-                        AddBorderSide(geometryList, attributesList,
-                            new Point3d(x1, y0, 0), new Point3d(x1, y1, 0),
-                            cell.BorderRight,  customColor, defaultBorderColor);
-                    }
-                    else
-                    {
-                        // Standaard: één gesloten rechthoek
-                        var borderAttrs = new ObjectAttributes
-                        {
-                            ColorSource = ObjectColorSource.ColorFromObject,
-                            ObjectColor = defaultBorderColor
-                        };
-                        geometryList.Add(new PolylineCurve(new[]
-                        {
-                            new Point3d(x0, y0, 0), new Point3d(x1, y0, 0),
-                            new Point3d(x1, y1, 0), new Point3d(x0, y1, 0),
-                            new Point3d(x0, y0, 0)
-                        }));
-                        attributesList.Add(borderAttrs);
-                    }
+                    VoteH(x0, x1, y0,
+                        cell.BorderTop    > 0 ? cell.BorderTop    : defaultThick,
+                        cell.BorderTop    > 0 ? customColor       : defaultBorderColor);
+                    VoteH(x0, x1, y1,
+                        cell.BorderBottom > 0 ? cell.BorderBottom : defaultThick,
+                        cell.BorderBottom > 0 ? customColor       : defaultBorderColor);
+                    VoteV(x0, y0, y1,
+                        cell.BorderLeft   > 0 ? cell.BorderLeft   : defaultThick,
+                        cell.BorderLeft   > 0 ? customColor       : defaultBorderColor);
+                    VoteV(x1, y0, y1,
+                        cell.BorderRight  > 0 ? cell.BorderRight  : defaultThick,
+                        cell.BorderRight  > 0 ? customColor       : defaultBorderColor);
 
                     // Celtekst
                     if (!string.IsNullOrWhiteSpace(cell.Text))
@@ -197,6 +194,32 @@ namespace RhinoTable.Core.Layout
                         attributesList.Add(textAttrs);
                     }
                 }
+            }
+
+            // Teken alle unieke rand-segmenten — geen dubbele lijnen meer bij aangrenzende cellen
+            foreach (var ((x0k, x1k, yk), (thick, col)) in hSegs)
+            {
+                geometryList.Add(new LineCurve(
+                    new Point3d(x0k / 1000.0, yk  / 1000.0, 0),
+                    new Point3d(x1k / 1000.0, yk  / 1000.0, 0)));
+                attributesList.Add(new ObjectAttributes
+                {
+                    ColorSource = ObjectColorSource.ColorFromObject,
+                    ObjectColor = col,
+                    PlotWeight  = thick
+                });
+            }
+            foreach (var ((xk, y0k, y1k), (thick, col)) in vSegs)
+            {
+                geometryList.Add(new LineCurve(
+                    new Point3d(xk  / 1000.0, y0k / 1000.0, 0),
+                    new Point3d(xk  / 1000.0, y1k / 1000.0, 0)));
+                attributesList.Add(new ObjectAttributes
+                {
+                    ColorSource = ObjectColorSource.ColorFromObject,
+                    ObjectColor = col,
+                    PlotWeight  = thick
+                });
             }
 
             return (geometryList, attributesList);
@@ -364,26 +387,6 @@ namespace RhinoTable.Core.Layout
             double t = Math.Min(tRight, tBottom);
             if (t < 0.001) return;
             geoms.Add(new LineCurve(new Point3d(sx, sy, 0), new Point3d(sx + t, sy - t, 0)));
-            attrs.Add(a);
-        }
-
-        private static void AddBorderSide(
-            List<GeometryBase> geoms, List<ObjectAttributes> attrs,
-            Point3d p0, Point3d p1, float thickness, Color customColor, Color defaultColor)
-        {
-            var line = new LineCurve(p0, p1);
-            var a = new ObjectAttributes { ColorSource = ObjectColorSource.ColorFromObject };
-            if (thickness > 0)
-            {
-                a.ObjectColor = customColor;
-                a.PlotWeight  = thickness;
-            }
-            else
-            {
-                a.ObjectColor = defaultColor;
-                a.PlotWeight  = 0.25;
-            }
-            geoms.Add(line);
             attrs.Add(a);
         }
 
