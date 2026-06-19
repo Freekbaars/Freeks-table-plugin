@@ -648,11 +648,10 @@ namespace RhinoTable.UI.ViewModels
                 StatusText = "Linked file not found.";
                 return;
             }
-            // Gebruik het opgeslagen werkblad zodat er geen dialog verschijnt bij refresh
-            await DoImportExcel(path, storeLink: true, knownSheet: _tableData.LinkedExcelSheet);
+            await DoImportExcel(path, storeLink: true, knownSheet: _tableData.LinkedExcelSheet, isRefresh: true);
         }
 
-        private async Task DoImportExcel(string path, bool storeLink, string? knownSheet = null)
+        private async Task DoImportExcel(string path, bool storeLink, string? knownSheet = null, bool isRefresh = false)
         {
             // Werkbladnamen ophalen om te bepalen of er een keuze nodig is
             List<string> sheets = await Task.Run(() => ExcelImporter.GetSheetNames(path));
@@ -668,7 +667,12 @@ namespace RhinoTable.UI.ViewModels
             ImportStarted?.Invoke(System.IO.Path.GetFileName(path), ExcelImporter.MaxRows);
 
             var progress = new Progress<int>(n => ImportProgress?.Invoke(n));
-            TableData result = await Task.Run(() => new ExcelImporter().Import(path, sheetName, progress));
+            TableData fresh = await Task.Run(() => new ExcelImporter().Import(path, sheetName, progress));
+
+            // Bij refresh: opmaak bewaren, alleen tekst bijwerken vanuit Excel
+            TableData result = (isRefresh && _tableData.Rows.Count > 0)
+                ? ExcelImporter.MergeInto(_tableData, fresh)
+                : fresh;
 
             if (storeLink)
             {
@@ -678,7 +682,7 @@ namespace RhinoTable.UI.ViewModels
             result.SourceObjectId = _tableData.SourceObjectId;
 
             _tableData = result;
-            new AutoWidthCalculator().Apply(_tableData);
+            if (!isRefresh) new AutoWidthCalculator().Apply(_tableData);
             RebuildGridItems(syncFirst: false);
             ImportFinished?.Invoke();
 

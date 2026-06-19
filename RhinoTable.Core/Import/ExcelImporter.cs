@@ -117,5 +117,56 @@ namespace RhinoTable.Core.Import
 
             return table;
         }
+
+        // Mergt verse Excel-data in een bestaande tabel: alleen tekst wordt bijgewerkt,
+        // alle RhinoTable-opmaak (kleuren, randen, fonts, arcering, samenvoegingen) blijft intact.
+        // Nieuwe rijen/kolommen vanuit Excel worden toegevoegd; verdwenen rijen/kolommen worden verwijderd.
+        public static TableData MergeInto(TableData existing, TableData fresh)
+        {
+            var result   = TableData.Deserialize(existing.Serialize())!;
+            int freshRows = fresh.Rows.Count;
+            int existRows = result.Rows.Count;
+            int freshCols = fresh.ColumnWidths.Count;
+
+            // Rijen bijwerken
+            while (result.Rows.Count > freshRows)
+                result.Rows.RemoveAt(result.Rows.Count - 1);
+            for (int r = existRows; r < freshRows; r++)
+                result.Rows.Add(fresh.Rows[r]);
+
+            // Rijhoogtes bijwerken (alleen voor nieuwe rijen)
+            while (result.RowHeights.Count > freshRows)
+                result.RowHeights.RemoveAt(result.RowHeights.Count - 1);
+            for (int r = result.RowHeights.Count; r < freshRows; r++)
+                result.RowHeights.Add(r < fresh.RowHeights.Count ? fresh.RowHeights[r] : 8.0);
+
+            // Kolombreedte: bijsnijden of uitbreiden (bestaande breedtes bewaren)
+            while (result.ColumnWidths.Count > freshCols)
+                result.ColumnWidths.RemoveAt(result.ColumnWidths.Count - 1);
+            for (int c = result.ColumnWidths.Count; c < freshCols; c++)
+                result.ColumnWidths.Add(c < fresh.ColumnWidths.Count ? fresh.ColumnWidths[c] : 30.0);
+
+            // Celtekst bijwerken voor rijen die in beide tabellen bestaan
+            for (int r = 0; r < Math.Min(existRows, freshRows); r++)
+            {
+                var existRow    = result.Rows[r];
+                var freshRow    = fresh.Rows[r];
+                int existCells  = existRow.Cells.Count;
+                int freshCells  = freshRow.Cells.Count;
+
+                while (existRow.Cells.Count > freshCells)
+                    existRow.Cells.RemoveAt(existRow.Cells.Count - 1);
+                for (int c = existCells; c < freshCells; c++)
+                    existRow.Cells.Add(freshRow.Cells[c]);
+
+                for (int c = 0; c < Math.Min(existCells, freshCells); c++)
+                {
+                    if (!existRow.Cells[c].IsMergedHidden)
+                        existRow.Cells[c].Text = freshRow.Cells[c].Text;
+                }
+            }
+
+            return result;
+        }
     }
 }

@@ -45,10 +45,12 @@ namespace Freeks_table_plugin.Commands
                 RhinoApp.WriteLine($"  → Vernieuwen: {idef.Name}  ←  {Path.GetFileName(path)}");
 
                 // Importeer vers Excel-bestand (gebruik opgeslagen werkbladnaam)
-                TableData fresh;
-                try   { fresh = new ExcelImporter().Import(path, tableData.LinkedExcelSheet); }
+                TableData freshImport;
+                try   { freshImport = new ExcelImporter().Import(path, tableData.LinkedExcelSheet); }
                 catch (Exception ex) { RhinoApp.WriteLine($"     Fout: {ex.Message}"); skipped++; continue; }
 
+                // Opmaak bewaren: alleen tekst bijwerken vanuit Excel
+                var fresh = ExcelImporter.MergeInto(tableData, freshImport);
                 fresh.LinkedExcelPath  = path;
                 fresh.LinkedExcelSheet = tableData.LinkedExcelSheet;
 

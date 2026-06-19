@@ -135,18 +135,20 @@ namespace Freeks_table_plugin
                     continue;
 
                 string cacheKey = td.LinkedExcelSheet ?? string.Empty;
-                if (!importCache.TryGetValue(cacheKey, out var fresh))
+                if (!importCache.TryGetValue(cacheKey, out var freshImport))
                 {
-                    try   { fresh = new ExcelImporter().Import(path, td.LinkedExcelSheet); }
+                    try   { freshImport = new ExcelImporter().Import(path, td.LinkedExcelSheet); }
                     catch (Exception ex)
                     {
                         RhinoApp.WriteLine($"RhinoTable: failed to sync '{System.IO.Path.GetFileName(path)}': {ex.Message}");
-                        fresh = null;
+                        freshImport = null;
                     }
-                    importCache[cacheKey] = fresh;
+                    importCache[cacheKey] = freshImport;
                 }
-                if (fresh == null) continue;
+                if (freshImport == null) continue;
 
+                // Opmaak bewaren: alleen tekst bijwerken vanuit Excel
+                var fresh = ExcelImporter.MergeInto(td, freshImport);
                 fresh.LinkedExcelPath  = path;
                 fresh.LinkedExcelSheet = td.LinkedExcelSheet;
 
