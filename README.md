@@ -2,7 +2,7 @@
 
 A professional table creator for Rhino 8. Create and edit Excel-like annotation tables directly in the Rhino viewport — no external tools required.
 
-![RhinoTable banner](DOCS/AI github banner.png)
+![RhinoTable banner](DOCS/ai-github-banner.png)
 
 ---
 
